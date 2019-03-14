@@ -1,0 +1,77 @@
+/*
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+*/
+/* 
+    Created on : 11.06.2018, 20:27:17
+    Author     : user
+*/
+
+@font-face {
+    font-family: "ClearSans";
+    src: url('ClearSans-Regular.ttf');
+}
+
+.root {
+    -fx-font-family: "ClearSans";
+    -fx-base: hsb(310, 4%, 24%);
+
+}
+.Menubar {
+    -fx-font-size: 13px;
+    -fx-padding-top: 3px;
+    -fx-padding-bottom: 3px;
+}
+.GridPane {
+    -fx-hgap: 4; 
+}
+
+.datePicker:disabled, .datePicker:disabled>*,.comboBox:disabled,.comboBox:disabled>*{
+    -fx-opacity: .85;
+}
+
+.button {
+    -fx-focus-color: hsb(31, 82%, 66%);
+}
+
+.button-active {
+    -fx-background-color: orange;
+}
+
+.button:disabled {
+    -fx-background-opacity: .5;
+    -fx-text-color: black;
+}
+
+.text-field:disabled {
+    -fx-opacity: .2;
+}
+
+.text-field {
+    -fx-background-color: white;
+}
+
+.warning {
+    -fx-base: red;
+}
+
+.required-textfield {
+    -fx-background-color: orange;
+}
+.required-textfield .text-field {
+    -fx-background-color: orange;
+}
+.filter-field {
+    -fx-background-radius: 0;
+    -fx-border-color: lightgrey;
+    -fx-border-width: 1px;
+    -fx-border-style: solid;
+}
+
+.progress-bar .bar{
+    -fx-background-color: lightgray;
+    -fx-background-insets: 1.5 2.5 2.5 2.5; 
+    -fx-background-radius: 0, 0, 0, 0;
+
+}
