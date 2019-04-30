@@ -68,8 +68,6 @@ public class DICOM {
 
     }
 
-    ;
-
     public final void loadDicomObject(File f) {
         if (f != null) {
             this.dicomFile = f;
@@ -94,7 +92,7 @@ public class DICOM {
     }
 
     public int[] getPixelData() {
-        
+
         return this.attributes.getInts(Tag.PixelData);
     }
 
@@ -296,4 +294,9 @@ public class DICOM {
         return attributes;
     }
 
+    public File getDicomFile() {
+        return dicomFile;
+    }
+
+    
 }

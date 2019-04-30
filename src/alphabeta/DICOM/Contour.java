@@ -13,6 +13,8 @@ public class Contour {
 
     private String uidCT;
     double[][] points;
+    
+   double[] rawPoints;
 
     public Contour(String uidCT) {
         this.uidCT = uidCT;
@@ -24,6 +26,14 @@ public class Contour {
 
     public void setUidCT(String uidCT) {
         this.uidCT = uidCT;
+    }
+
+    public double[] getRawPoints() {
+        return rawPoints;
+    }
+
+    public void setRawPoints(double[] rawPoints) {
+        this.rawPoints = rawPoints;
     }
 
     /**

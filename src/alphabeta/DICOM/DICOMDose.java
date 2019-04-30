@@ -13,8 +13,9 @@ import java.util.List;
 /**
  *
  * @author shaesler
+ *
  */
-public class DICOMDose {
+public class DICOMDose extends DICOM {
 
     private List<DoseMatrix> doseCube = new ArrayList<>();
 
@@ -41,6 +42,7 @@ public class DICOMDose {
     private int row;
 
     private int column;
+    
 
     public List<DoseMatrix> getDoseCube() {
         return doseCube;
@@ -118,15 +120,8 @@ public class DICOMDose {
         return doseData;
     }
 
-    public void setDoseData(byte[] doseData) {
-        this.doseData = new double[doseData.length];
-        for (int i = 0; i < doseData.length; i++) {
-            int val = Integer.parseUnsignedInt(Integer.toBinaryString(doseData[i] & 0xFF), 2);
-            this.doseData[i] = val * this.doseGridScaling;
-            if(val!=0){
-                System.out.println(this.doseData[i]);
-            }
-        }
+    public void setDoseData(double[] doseData) {
+        this.doseData = doseData;
         generateDoseCube();
     }
 
@@ -198,6 +193,12 @@ public class DICOMDose {
         double[] temp = doseData.clone();
         Arrays.sort(temp);
         return temp[temp.length - 1];
+    }
+
+    public double getDoseMin() {
+        double[] temp = doseData.clone();
+        Arrays.sort(temp);
+        return temp[0];
     }
 
     private static int firstIndexOf(double[] array, double valueToFind, double tolerance) {

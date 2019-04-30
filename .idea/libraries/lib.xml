@@ -1,0 +1,17 @@
+<component name="libraryTable">
+  <library name="lib">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/dist/lib/commons-cli-1.4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/dist/lib/dcm4che-imageio-5.15.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/dist/lib/slf4j-log4j12-1.7.25.jar!/" />
+      <root url="jar://$PROJECT_DIR$/dist/lib/log4j-1.2.17.jar!/" />
+      <root url="jar://$PROJECT_DIR$/dist/lib/sqlite-jdbc-3.23.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/dist/lib/javax.json-1.0.4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/dist/lib/dcm4che-image-5.15.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/dist/lib/slf4j-api-1.7.25.jar!/" />
+      <root url="jar://$PROJECT_DIR$/dist/lib/dcm4che-core-5.15.1.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

@@ -12,10 +12,13 @@ import alphabeta.DICOM.DICOMPlan;
 import alphabeta.DICOM.Structure;
 import alphabeta.structure.Patient;
 import alphabeta.structure.StructureSet;
-import alphabeta.thread.LoadImage;
+import alphabeta.thread.LoadThread;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URL;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.ResourceBundle;
@@ -30,6 +33,7 @@ import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.geometry.Pos;
+import javafx.scene.Group;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.control.CheckBox;
@@ -45,6 +49,7 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 
@@ -86,9 +91,12 @@ public class mainViewController implements Initializable {
 
     @FXML
     private Label zLabel;
-    
+
     @FXML
     private Label doseMax;
+
+    @FXML
+    private Group structureGroup;
 
     /**
      * @param mainApp
@@ -192,11 +200,9 @@ public class mainViewController implements Initializable {
 
     private void paintStructures(int indexOfCt, List<Structure> structures) {
         this.structurCanvas.getGraphicsContext2D().clearRect(0, 0, this.structurCanvas.getWidth(), this.structurCanvas.getHeight());
-        for (Structure item : structures) {
-            if (item.isVisible()) {
-                paintStructur(item, activeImages.get(indexOfCt));
-            }
-        }
+        structures.stream().filter((item) -> (item.isVisible())).forEachOrdered((item) -> {
+            paintStructur(item, activeImages.get(indexOfCt));
+        });
     }
 
     @FXML
@@ -213,7 +219,7 @@ public class mainViewController implements Initializable {
         if (files != null && !files.isEmpty()) {
             ObservableList filess = FXCollections.observableArrayList();
             filess.addAll(files);
-            LoadImage loadTask = new LoadImage(files);
+            LoadThread loadTask = new LoadThread(files);
             loadTask.setOnSucceeded((WorkerStateEvent event1) -> {
                 patient = loadTask.getValue();
                 structureTree.setRoot(new TreeItem(patient.getPatientName()));
@@ -223,25 +229,27 @@ public class mainViewController implements Initializable {
                     imageTreeView.getRoot().getChildren().add(topoItem);
                 }
                 if (!patient.getPlan().isEmpty()) {
-                    for (DICOMPlan plan : patient.getPlan()) {
+                    patient.getPlan().stream().map((DICOMPlan plan) -> {
                         TreeItem planItem = new TreeItem(plan);
-
                         if (!patient.getStructureSet().isEmpty()) {
-                            for (StructureSet structureSet : patient.getStructureSet()) {
-                                if (plan.getReferenceUIDStructure() == null ? structureSet.getUid() == null : plan.getReferenceUIDStructure().equals(structureSet.getUid())) {
-                                    TreeItem item = new TreeItem(structureSet);
-                                    item.setExpanded(true);
-                                    for (Structure structItem : structureSet.getStructure()) {
-                                        CheckBoxTreeItem subItem = new CheckBoxTreeItem(structItem);
-                                        item.getChildren().add(subItem);
-                                    }
-                                    planItem.getChildren().add(item);
-                                }
-                            }
+                            patient.getStructureSet().stream().filter((structureSet) -> (plan.getReferenceUIDStructure() == null ? structureSet.getUid() == null : plan.getReferenceUIDStructure().equals(structureSet.getUid()))).map((StructureSet structureSet) -> {
+                                TreeItem item = new TreeItem(structureSet);
+                                item.setExpanded(true);
+                                structureSet.getStructure().stream().map((structItem) -> new CheckBoxTreeItem(structItem)).forEachOrdered((subItem) -> {
+                                    item.getChildren().add(subItem);
+                                });
+                                return item;
+                            }).forEachOrdered((item) -> {
+                                planItem.getChildren().add(item);
+                            });
                         }
+                        return planItem;
+                    }).map((planItem) -> {
                         structureTree.getRoot().getChildren().add(planItem);
+                        return planItem;
+                    }).forEachOrdered((planItem) -> {
                         imageTreeView.getRoot().getChildren().add(planItem);
-                    }
+                    });
                 }
                 imageTreeView.getRoot().setExpanded(true);
                 structureTree.getRoot().setExpanded(true);
@@ -272,8 +280,24 @@ public class mainViewController implements Initializable {
 
     }
 
+    /**
+     * @param structure
+     * @param ctImage
+     * @TODO - Zeichnen mit Lücken umsetzen
+     *
+     */
     public void paintStructur(Structure structure, CTImage ctImage) {
         GraphicsContext gc = this.structurCanvas.getGraphicsContext2D();
+        Polyline polyline = new Polyline();
+        DecimalFormat format = new DecimalFormat("###000.##");
+        PrintStream o = null;
+        try {
+            o = new PrintStream(new File("C:\\users\\shaesler\\desktop\\A.txt"));
+            System.setOut(o);
+        } catch (FileNotFoundException ex) {
+            Logger.getLogger(mainViewController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        PrintStream console = System.out;
 
         Contour slice = null;
         gc.setStroke(structure.getColor());
@@ -289,6 +313,10 @@ public class mainViewController implements Initializable {
                 double[] point = slice.getPoints()[i];
                 double oX = ctImage.getOriginX();
                 double oY = ctImage.getOriginY();
+                if (structure.getName().equals("BODY")) {
+                    System.out.println(format.format(point[0]) + ";" + format.format(point[1]));
+
+                }
                 double xPx = Math.abs(point[0] - oX) / ctImage.getPixelSpaceX();
                 double yPx = Math.abs(point[1] - oY) / ctImage.getPixelSpaceY();
                 if (i == 0) {
@@ -300,6 +328,12 @@ public class mainViewController implements Initializable {
             gc.closePath();
             gc.stroke();
         }
+        System.setOut(console);
+    }
+
+    // Methode für die Berechnung der Distanz zwischen zwei Punkten.
+    public static double getDistance(double xP1, double yP1, double xP2, double yP2) {
+        return Math.sqrt(Math.pow((xP2 - xP1), 2) + Math.pow((yP2 - yP1), 2));
     }
 
     class CustomCell extends TreeCell<Object> {

@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import javafx.scene.Group?>
 <?import javafx.scene.canvas.Canvas?>
 <?import javafx.scene.chart.CategoryAxis?>
 <?import javafx.scene.chart.LineChart?>
@@ -134,6 +135,7 @@
                                        </children>
                                     </Pane>
                                     <Canvas fx:id="structurCanvas" height="700.0" width="855.0" />
+                                    <Group fx:id="structureGroup" autoSizeChildren="false" />
                                  </children>
                               </StackPane>
                               <ScrollBar fx:id="imageScroll" blockIncrement="1.0" max="3.0" orientation="VERTICAL" prefHeight="700.0" visibleAmount="1.0" />
