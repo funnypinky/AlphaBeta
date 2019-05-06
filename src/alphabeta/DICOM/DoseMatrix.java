@@ -12,11 +12,15 @@ package alphabeta.DICOM;
 public class DoseMatrix {
     private int rows;
     private int columns;
+    private double zValue;
     
     private final double[][] matrix;
     
-    public DoseMatrix(int columns, int rows) {
+    public DoseMatrix(int columns, int rows, double zValue) {
         this.matrix = new double[rows][columns];
+        this.columns = columns;
+        this.rows = rows;
+        this.zValue = zValue;
     }
     
     public void setMatrixPixel(int row, int column, double value){
@@ -30,4 +34,30 @@ public class DoseMatrix {
     public double[][] getMatrix() {
         return this.matrix;
     }
+
+    public int getRows() {
+        return rows;
+    }
+
+    public void setRows(int rows) {
+        this.rows = rows;
+    }
+
+    public int getColumns() {
+        return columns;
+    }
+
+    public void setColumns(int columns) {
+        this.columns = columns;
+    }
+
+    public double getzValue() {
+        return zValue;
+    }
+
+    public void setzValue(double zValue) {
+        this.zValue = zValue;
+    }
+    
+    
 }

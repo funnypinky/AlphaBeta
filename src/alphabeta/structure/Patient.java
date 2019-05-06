@@ -7,6 +7,7 @@ package alphabeta.structure;
 
 import alphabeta.DICOM.DICOMPlan;
 import alphabeta.DICOM.CTImage;
+import alphabeta.DICOM.DICOMDose;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,6 +19,8 @@ public class Patient {
 
     private String patientName;
 
+    private List<DICOMDose> dose = new ArrayList<>();
+    
     private List<DICOMPlan> plan = new ArrayList<>();
 
     private List<CTImage> topo = new ArrayList<>();
@@ -49,4 +52,9 @@ public class Patient {
     public List<StructureSet> getStructureSet() {
         return structureSet;
     }
+
+    public List<DICOMDose> getDose() {
+        return dose;
+    }
+    
 }

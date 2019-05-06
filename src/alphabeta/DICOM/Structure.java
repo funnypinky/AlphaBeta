@@ -23,7 +23,7 @@ public class Structure {
 
     private Color color;
 
-    List<Contour> points = new ArrayList<>();
+    List<ContourSlice> points = new ArrayList<>();
     
     private boolean visible = true;
 
@@ -70,17 +70,17 @@ public class Structure {
 
     /**
      *
-     * @param color - Array of String 0 is reg, 1 is green, 2 is blue
+     * @param color - Array of String 0 is red, 1 is green, 2 is blue
      */
     public void setColor(String[] color) {
         this.color = Color.rgb(Integer.valueOf(color[0]), Integer.valueOf(color[1]), Integer.valueOf(color[2]));
     }
 
-    public List<Contour> getPoints() {
+    public List<ContourSlice> getPoints() {
         return points;
     }
 
-    public void setPoints(List<Contour> points) {
+    public void setPoints(List<ContourSlice> points) {
         this.points = points;
     }
 

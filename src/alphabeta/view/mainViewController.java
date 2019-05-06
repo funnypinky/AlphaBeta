@@ -7,16 +7,15 @@ package alphabeta.view;
 
 import alphabeta.AlphaBeta;
 import alphabeta.DICOM.CTImage;
-import alphabeta.DICOM.Contour;
+import alphabeta.DICOM.ContourSlice;
+import alphabeta.DICOM.DICOMDose;
 import alphabeta.DICOM.DICOMPlan;
 import alphabeta.DICOM.Structure;
 import alphabeta.structure.Patient;
 import alphabeta.structure.StructureSet;
 import alphabeta.thread.LoadThread;
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.io.PrintStream;
 import java.net.URL;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -41,6 +40,7 @@ import javafx.scene.control.CheckBoxTreeItem;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.SelectionMode;
+import javafx.scene.control.TextField;
 import javafx.scene.control.TreeCell;
 import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
@@ -49,7 +49,6 @@ import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
-import javafx.scene.shape.Polyline;
 import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 
@@ -97,6 +96,9 @@ public class mainViewController implements Initializable {
 
     @FXML
     private Group structureGroup;
+    
+    @FXML
+    private TextField prescriptionDose;
 
     /**
      * @param mainApp
@@ -153,8 +155,9 @@ public class mainViewController implements Initializable {
                             TreeItem itemTree = (TreeItem) tempItem.getChildren().get(0);
                             StructureSet temp = (StructureSet) itemTree.getValue();
                             paintStructures((int) imageScroll.getValue(), temp.getStructure());
+                        } else if (tempItem.getValue() instanceof DICOMDose) {
+                            
                         }
-
                         zLabel.setText(String.format("z: %.2f mm", activeImages.get((int) imageScroll.getValue()).getZ()));
                     }
                 } catch (IOException ex) {
@@ -243,6 +246,15 @@ public class mainViewController implements Initializable {
                                 planItem.getChildren().add(item);
                             });
                         }
+                        if(!patient.getDose().isEmpty()){
+                            patient.getDose().stream().filter((dose) -> (plan.getReferenceUIDDose() == null ? dose.getUid() == null : plan.getReferenceUIDDose().equals(dose.getUid()))).map((DICOMDose dose) -> {
+                                TreeItem item = new TreeItem(dose);
+                                item.setExpanded(true);
+                                return item;
+                            }).forEachOrdered((item) -> {
+                                planItem.getChildren().add(item);
+                            });
+                        }
                         return planItem;
                     }).map((planItem) -> {
                         structureTree.getRoot().getChildren().add(planItem);
@@ -283,52 +295,38 @@ public class mainViewController implements Initializable {
     /**
      * @param structure
      * @param ctImage
-     * @TODO - Zeichnen mit Lücken umsetzen
      *
      */
     public void paintStructur(Structure structure, CTImage ctImage) {
         GraphicsContext gc = this.structurCanvas.getGraphicsContext2D();
-        Polyline polyline = new Polyline();
         DecimalFormat format = new DecimalFormat("###000.##");
-        PrintStream o = null;
-        try {
-            o = new PrintStream(new File("C:\\users\\shaesler\\desktop\\A.txt"));
-            System.setOut(o);
-        } catch (FileNotFoundException ex) {
-            Logger.getLogger(mainViewController.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        PrintStream console = System.out;
-
-        Contour slice = null;
+        
         gc.setStroke(structure.getColor());
-        //Find the correct Slice to paint Contour;
-        for (Contour item : structure.getPoints()) {
+        //Find the correct Slice to paint ContourSlice;
+        for (ContourSlice item : structure.getPoints()) {
+            ContourSlice slice = null;
             if (item.getUidCT().equals(ctImage.getUID())) {
                 slice = item;
             }
-        }
-        if (slice != null) {
-            gc.beginPath();
-            for (int i = 0; i < slice.getPoints().length; i++) {
-                double[] point = slice.getPoints()[i];
-                double oX = ctImage.getOriginX();
-                double oY = ctImage.getOriginY();
-                if (structure.getName().equals("BODY")) {
-                    System.out.println(format.format(point[0]) + ";" + format.format(point[1]));
+            if (slice != null) {
+                gc.beginPath();
+                for (int i = 0; i < slice.getPoints().length; i++) {
+                    double[] point = slice.getPoints()[i];
+                    double oX = ctImage.getOriginX();
+                    double oY = ctImage.getOriginY();
 
+                    double xPx = Math.abs(point[0] - oX) / ctImage.getPixelSpaceX();
+                    double yPx = Math.abs(point[1] - oY) / ctImage.getPixelSpaceY();
+                    if (i == 0) {
+                        gc.moveTo(xPx * scaleFactor, yPx * scaleFactor);
+                    } else {
+                        gc.lineTo(xPx * scaleFactor, yPx * scaleFactor);
+                    }
                 }
-                double xPx = Math.abs(point[0] - oX) / ctImage.getPixelSpaceX();
-                double yPx = Math.abs(point[1] - oY) / ctImage.getPixelSpaceY();
-                if (i == 0) {
-                    gc.moveTo(xPx * scaleFactor, yPx * scaleFactor);
-                } else {
-                    gc.lineTo(xPx * scaleFactor, yPx * scaleFactor);
-                }
+                gc.closePath();
+                gc.stroke();
             }
-            gc.closePath();
-            gc.stroke();
         }
-        System.setOut(console);
     }
 
     // Methode für die Berechnung der Distanz zwischen zwei Punkten.

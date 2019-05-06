@@ -21,6 +21,8 @@ public class DICOMPlan {
     private String referenceUIDDose;
     private ApprovStatus approvStatus;
     private final List<Field> fields = new ArrayList<>();
+    private double planDose;
+    private double fraction;
 
     public String getUid() {
         return uid;
@@ -69,6 +71,22 @@ public class DICOMPlan {
     @Override
     public String toString() {
         return planName;
+    }
+
+    public double getPlanDose() {
+        return planDose;
+    }
+
+    public void setPlanDose(double planDose) {
+        this.planDose = planDose;
+    }
+
+    public double getFraction() {
+        return fraction;
+    }
+
+    public void setFraction(double fraction) {
+        this.fraction = fraction;
     }
     
 }

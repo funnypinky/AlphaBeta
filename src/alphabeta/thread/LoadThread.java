@@ -6,7 +6,7 @@
 package alphabeta.thread;
 
 import alphabeta.DICOM.CTImage;
-import alphabeta.DICOM.Contour;
+import alphabeta.DICOM.ContourSlice;
 import alphabeta.DICOM.DICOM;
 import alphabeta.DICOM.DICOMDose;
 import alphabeta.DICOM.DICOMPlan;
@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.concurrent.Task;
-import javax.imageio.ImageIO;
 import jep.Jep;
 import jep.JepException;
 import jep.NDArray;
@@ -41,15 +40,17 @@ public class LoadThread extends Task<Patient> {
     Patient patient = new Patient();
     PythonInterpreter interpreter = new PythonInterpreter();
 
+    private double[] ctPixelSize;
+
     public LoadThread(List<File> files) {
         this.files = files;
     }
 
     private List<Structure> readStructureSet(DICOM rsDICOM) {
         List<Structure> structures = new ArrayList<>();
-        Sequence ROISequence = rsDICOM.getAttributes().getSequence(Tag.StructureSetROISequence);
-        Sequence conturSequence = rsDICOM.getAttributes().getSequence(Tag.ROIContourSequence);
-        Sequence observerContour = rsDICOM.getAttributes().getSequence(Tag.RTROIObservationsSequence);
+        Sequence ROISequence = rsDICOM.getAttributes().getSequence(Tag.StructureSetROISequence); //is for the name of the contour
+        Sequence conturSequence = rsDICOM.getAttributes().getSequence(Tag.ROIContourSequence); //is for the points of the contour
+        Sequence observerContour = rsDICOM.getAttributes().getSequence(Tag.RTROIObservationsSequence); //is for the contour type
         for (Attributes conturItem : conturSequence) {
             for (Attributes roiItem : ROISequence) {
                 if (conturItem.getString(Tag.ReferencedROINumber).equals(roiItem.getString(Tag.ROINumber))) {
@@ -57,9 +58,10 @@ public class LoadThread extends Task<Patient> {
                     tempStruct.setColor(conturItem.getStrings(Tag.ROIDisplayColor));
                     Sequence contourSlices = conturItem.getSequence(Tag.ContourSequence);
                     contourSlices.stream().map((contourSlice) -> {
-                        Contour tempContour = new Contour(contourSlice.getSequence(Tag.ContourImageSequence).get(0).getString(Tag.ReferencedSOPInstanceUID));
+                        ContourSlice tempContour = new ContourSlice(contourSlice.getSequence(Tag.ContourImageSequence).get(0).getString(Tag.ReferencedSOPInstanceUID));
                         double[][] points = new double[contourSlice.getInt(Tag.NumberOfContourPoints, 100)][3];
                         double[] pointsFormDICOM = contourSlice.getDoubles(Tag.ContourData);
+                        tempContour.setzValue(pointsFormDICOM[2]);
                         int j = 0;
                         for (int i = 0; i < pointsFormDICOM.length; i += 3) {
                             if (i < points.length * 3) {
@@ -112,6 +114,9 @@ public class LoadThread extends Task<Patient> {
         } else {
             Exception exception = new Exception("Not supported kind of DICOM RT plan file.");
         }
+        
+        plan.setPlanDose(rpDICOM.getAttributes().getSequence(Tag.DoseReferenceSequence).get(0).getDouble(Tag.TargetPrescriptionDose, 0.0));
+        plan.setFraction(rpDICOM.getAttributes().getSequence(Tag.FractionGroupSequence).get(0).getDouble(Tag.NumberOfFractionsPlanned, 0.0));
         Sequence beamSequence = rpDICOM.getAttributes().getSequence(beamParam);
         for (Attributes beam : beamSequence) {
             Field field = new Field(beam.getString(Tag.BeamName));
@@ -130,11 +135,13 @@ public class LoadThread extends Task<Patient> {
         return plan;
     }
 
-    private void readDose(DICOM rpDICOM) {
+    private DICOMDose readDose(DICOM rpDICOM) {
         DICOMDose dose = new DICOMDose();
         try {
             Jep jep = new Jep();
             jep.set("filePath", rpDICOM.getDicomFile().getAbsolutePath());
+            dose.setScaleFactorX(rpDICOM.getAttributes().getDoubles(Tag.PixelSpacing)[0] / ctPixelSize[0]);
+            dose.setScaleFactorY(rpDICOM.getAttributes().getDoubles(Tag.PixelSpacing)[1] / ctPixelSize[1]);
             dose.setUid(rpDICOM.getAttributes().getString(Tag.SOPInstanceUID));
             dose.setDoseGridScaling(rpDICOM.getAttributes().getDouble(Tag.DoseGridScaling, 1.0));
             dose.setResolutionX(rpDICOM.getAttributes().getDoubles(Tag.PixelSpacing)[0]);
@@ -156,13 +163,13 @@ public class LoadThread extends Task<Patient> {
             jep.runScript("script.py");
             NDArray tt = (NDArray) jep.getValue("doseData");
             dose.setDoseData((double[]) tt.getData());
-            System.out.println("Max: "+dose.getDoseMax());
-            System.out.println("Min: "+dose.getDoseMin());
+            System.out.println("Max: " + dose.getDoseMax());
+            System.out.println("Min: " + dose.getDoseMin());
         } catch (JepException ex) {
             Logger.getLogger(DICOMDose.class.getName()).log(Level.SEVERE, null, ex);
             System.exit(-1);
         }
-        
+        return dose;
     }
 
     @Override
@@ -177,6 +184,7 @@ public class LoadThread extends Task<Patient> {
             patient.setPatientName(dcmTemp.getFullPatientName());
             switch (dcmTemp.getModalitiy()) {
                 case CT:
+                    ctPixelSize = dcmTemp.getAttributes().getDoubles(Tag.PixelSpacing);
                     if (dcmTemp.getCSImageType()[2].equalsIgnoreCase("axial")) {
                         patient.getCtImage().add(new CTImage(dcmTemp));
                     } else if (dcmTemp.getCSImageType()[2].equalsIgnoreCase("LOCALIZER")) {
@@ -195,8 +203,7 @@ public class LoadThread extends Task<Patient> {
                     patient.getPlan().add(readPlan(dcmTemp));
                     break;
                 case RTDOSE:
-                    ImageIO.write(dcmTemp.getBufferedImage(), "png", new File("C://temp//image.png"));
-                    readDose(dcmTemp);
+                    patient.getDose().add(readDose(dcmTemp));
                     break;
             }
         }

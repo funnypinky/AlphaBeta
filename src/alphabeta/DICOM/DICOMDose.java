@@ -5,6 +5,7 @@
  */
 package alphabeta.DICOM;
 
+import alphabeta.structure.IsodoseLevel;
 import alphabeta.structure.enums.SummationType;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -18,6 +19,8 @@ import java.util.List;
 public class DICOMDose extends DICOM {
 
     private List<DoseMatrix> doseCube = new ArrayList<>();
+    
+    private List<IsodoseLevel> isodose = new ArrayList<>();
 
     private double[] doseData;
 
@@ -36,13 +39,16 @@ public class DICOMDose extends DICOM {
     private double[] imagePositionPatient;
 
     private double[] imageOrientationPatient;
+    
+    private double scaleFactorX = 1.0;
+    
+    private double scaleFactorY = 1.0;
 
     private SummationType summationType;
 
     private int row;
 
     private int column;
-    
 
     public List<DoseMatrix> getDoseCube() {
         return doseCube;
@@ -151,17 +157,51 @@ public class DICOMDose extends DICOM {
 
     public void generateDoseCube() {
         int i = 0;
+        int j = 0;
+        double[] sliceVector = this.gridFrameOffsetVector;
         while (this.doseData.length > i) {
-            DoseMatrix doseMatrix = new DoseMatrix(column, row);
+            DoseMatrix doseMatrix = new DoseMatrix(column, row, sliceVector[j] + this.imagePositionPatient[2]);
             for (int y = 0; y < row; y++) {
                 for (int x = 0; x < column; x++) {
                     doseMatrix.setMatrixPixel(y, x, this.doseData[i]);
                     i++;
                 }
             }
+            j++;
+            interpolate2D(doseMatrix.getMatrix(), this.scaleFactorX, this.scaleFactorY);
             doseCube.add(doseMatrix);
         }
 
+    }
+
+    public double[][] interpolate2D(double[][] self, double scaleX, double scaleY) {
+        int width = self[0].length;
+        int height = self.length;
+        int newWidth = (int) (self[0].length * scaleX);
+        int newHeight = (int) (self.length * scaleY);
+        double[][] newImage = new double[newHeight][newWidth];
+        for (int x = 0; x < newWidth; ++x) {
+            for (int y = 0; y < newHeight; ++y) {
+                float gx = ((float) x) / newWidth * (width - 1);
+                float gy = ((float) y) / newHeight * (height - 1);
+                int gxi = (int) gx;
+                int gyi = (int) gy;
+                double c00 = self[gyi][gxi];
+                double c10 = self[gyi][gxi + 1];
+                double c01 = self[gyi + 1][gxi];
+                double c11 = self[gyi + 1][gxi + 1];
+                newImage[y][x] = blerp(c00, c10, c01, c11, gx - gxi, gy - gyi);
+            }
+        }
+        return newImage;
+    }
+
+    private static double lerp(double s, double e, double t) {
+        return s + (e - s) * t;
+    }
+
+    private static double blerp(double c00, double c10, double c01, double c11, double tx, double ty) {
+        return lerp(lerp(c00, c10, tx), lerp(c01, c11, tx), ty);
     }
 
     public DoseMatrix getDosePlaneBySlice(double slicePosition) {
@@ -210,4 +250,24 @@ public class DICOMDose extends DICOM {
         return -1;
     }
 
+    public double getScaleFactorX() {
+        return scaleFactorX;
+    }
+
+    public void setScaleFactorX(double scaleFactorX) {
+        this.scaleFactorX = scaleFactorX;
+    }
+
+    public double getScaleFactorY() {
+        return scaleFactorY;
+    }
+
+    public void setScaleFactorY(double scaleFactorY) {
+        this.scaleFactorY = scaleFactorY;
+    }
+
+    public List<IsodoseLevel> getIsodose() {
+        return isodose;
+    }
+       
 }
