@@ -10,27 +10,30 @@ package alphabeta.DICOM;
  * @author shaesler
  */
 public class DoseMatrix {
+
     private int rows;
     private int columns;
     private double zValue;
-    
+
     private final double[][] matrix;
-    
+
+    private double[][] interpolateMatrix;
+
     public DoseMatrix(int columns, int rows, double zValue) {
         this.matrix = new double[rows][columns];
         this.columns = columns;
         this.rows = rows;
         this.zValue = zValue;
     }
-    
-    public void setMatrixPixel(int row, int column, double value){
+
+    public void setMatrixPixel(int row, int column, double value) {
         this.matrix[row][column] = value;
     }
-    
-    public double getMatrixPixel(int row, int column){
+
+    public double getMatrixPixel(int row, int column) {
         return this.matrix[row][column];
     }
-    
+
     public double[][] getMatrix() {
         return this.matrix;
     }
@@ -58,6 +61,13 @@ public class DoseMatrix {
     public void setzValue(double zValue) {
         this.zValue = zValue;
     }
-    
-    
+
+    public double[][] getInterpolateMatrix() {
+        return interpolateMatrix;
+    }
+
+    public void setInterpolateMatrix(double[][] interpolateMatrix) {
+        this.interpolateMatrix = interpolateMatrix;
+    }
+
 }

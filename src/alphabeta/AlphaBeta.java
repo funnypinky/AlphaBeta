@@ -27,7 +27,7 @@ public class AlphaBeta extends Application {
     public static final String DATABASEPATH = java.lang.System.getProperty("user.dir") + "\\data\\database\\";
     public static final String DATABASENAME = "alphabeta.de.db";
 
-    private Scene scene = new Scene(new VBox());
+    private final Scene scene = new Scene(new VBox());
 
     @Override
     public void start(Stage stage) throws Exception {

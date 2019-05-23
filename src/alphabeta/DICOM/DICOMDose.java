@@ -19,7 +19,7 @@ import java.util.List;
 public class DICOMDose extends DICOM {
 
     private List<DoseMatrix> doseCube = new ArrayList<>();
-    
+
     private List<IsodoseLevel> isodose = new ArrayList<>();
 
     private double[] doseData;
@@ -39,10 +39,14 @@ public class DICOMDose extends DICOM {
     private double[] imagePositionPatient;
 
     private double[] imageOrientationPatient;
-    
+
     private double scaleFactorX = 1.0;
-    
+
     private double scaleFactorY = 1.0;
+
+    private double ctimageRows = 0;
+
+    private double ctimageCols = 0;
 
     private SummationType summationType;
 
@@ -168,7 +172,7 @@ public class DICOMDose extends DICOM {
                 }
             }
             j++;
-            interpolate2D(doseMatrix.getMatrix(), this.scaleFactorX, this.scaleFactorY);
+            doseMatrix.setInterpolateMatrix(interpolate2D(doseMatrix.getMatrix(), this.scaleFactorX, this.scaleFactorY));
             doseCube.add(doseMatrix);
         }
 
@@ -269,5 +273,21 @@ public class DICOMDose extends DICOM {
     public List<IsodoseLevel> getIsodose() {
         return isodose;
     }
-       
+
+    public double getCtimageRows() {
+        return ctimageRows;
+    }
+
+    public void setCtimageRows(double ctimageRows) {
+        this.ctimageRows = ctimageRows;
+    }
+
+    public double getCtimageCols() {
+        return ctimageCols;
+    }
+
+    public void setCtimageCols(double ctimageCols) {
+        this.ctimageCols = ctimageCols;
+    }
+
 }

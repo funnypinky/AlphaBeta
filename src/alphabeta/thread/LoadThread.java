@@ -40,7 +40,8 @@ public class LoadThread extends Task<Patient> {
     Patient patient = new Patient();
     PythonInterpreter interpreter = new PythonInterpreter();
 
-    private double[] ctPixelSize;
+    private int ctRows;
+    private int ctCols;
 
     public LoadThread(List<File> files) {
         this.files = files;
@@ -114,7 +115,7 @@ public class LoadThread extends Task<Patient> {
         } else {
             Exception exception = new Exception("Not supported kind of DICOM RT plan file.");
         }
-        
+
         plan.setPlanDose(rpDICOM.getAttributes().getSequence(Tag.DoseReferenceSequence).get(0).getDouble(Tag.TargetPrescriptionDose, 0.0));
         plan.setFraction(rpDICOM.getAttributes().getSequence(Tag.FractionGroupSequence).get(0).getDouble(Tag.NumberOfFractionsPlanned, 0.0));
         Sequence beamSequence = rpDICOM.getAttributes().getSequence(beamParam);
@@ -140,8 +141,8 @@ public class LoadThread extends Task<Patient> {
         try {
             Jep jep = new Jep();
             jep.set("filePath", rpDICOM.getDicomFile().getAbsolutePath());
-            dose.setScaleFactorX(rpDICOM.getAttributes().getDoubles(Tag.PixelSpacing)[0] / ctPixelSize[0]);
-            dose.setScaleFactorY(rpDICOM.getAttributes().getDoubles(Tag.PixelSpacing)[1] / ctPixelSize[1]);
+            dose.setScaleFactorY((double) ctCols / (double) rpDICOM.getAttributes().getInt(Tag.Rows, -1));
+            dose.setScaleFactorX((double) ctRows / (double) rpDICOM.getAttributes().getInt(Tag.Columns, -1));
             dose.setUid(rpDICOM.getAttributes().getString(Tag.SOPInstanceUID));
             dose.setDoseGridScaling(rpDICOM.getAttributes().getDouble(Tag.DoseGridScaling, 1.0));
             dose.setResolutionX(rpDICOM.getAttributes().getDoubles(Tag.PixelSpacing)[0]);
@@ -184,7 +185,8 @@ public class LoadThread extends Task<Patient> {
             patient.setPatientName(dcmTemp.getFullPatientName());
             switch (dcmTemp.getModalitiy()) {
                 case CT:
-                    ctPixelSize = dcmTemp.getAttributes().getDoubles(Tag.PixelSpacing);
+                    this.ctCols = dcmTemp.getAttributes().getInt(Tag.Columns, -1);
+                    this.ctRows = dcmTemp.getAttributes().getInt(Tag.Rows, -1);
                     if (dcmTemp.getCSImageType()[2].equalsIgnoreCase("axial")) {
                         patient.getCtImage().add(new CTImage(dcmTemp));
                     } else if (dcmTemp.getCSImageType()[2].equalsIgnoreCase("LOCALIZER")) {
