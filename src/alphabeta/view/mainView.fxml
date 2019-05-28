@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.canvas.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.input.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.Group?>
 <?import javafx.scene.canvas.Canvas?>
 <?import javafx.scene.chart.CategoryAxis?>
@@ -13,6 +20,7 @@
 <?import javafx.scene.control.MenuItem?>
 <?import javafx.scene.control.ScrollBar?>
 <?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
 <?import javafx.scene.control.TextField?>
@@ -27,7 +35,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="813.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8.0.121" xmlns:fx="http://javafx.com/fxml/1" fx:controller="alphabeta.view.mainViewController">
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="813.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="alphabeta.view.mainViewController">
   <children>
     <MenuBar VBox.vgrow="NEVER">
       <menus>
@@ -122,7 +130,12 @@
               <content>
                   <HBox>
                      <children>
-                        <TreeView fx:id="imageTreeView" />
+                        <SplitPane dividerPositions="0.333" orientation="VERTICAL">
+                           <items>
+                              <TreeView fx:id="planTreeView" />
+                              <TreeView fx:id="detailsTreeView" />
+                           </items>
+                        </SplitPane>
                         <HBox prefHeight="700.0" prefWidth="855.0">
                            <children>
                               <StackPane fx:id="stackedPane" HBox.hgrow="SOMETIMES">

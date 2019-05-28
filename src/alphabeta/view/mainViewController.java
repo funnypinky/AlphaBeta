@@ -8,7 +8,6 @@ package alphabeta.view;
 import alphabeta.AlphaBeta;
 import alphabeta.DICOM.CTImage;
 import alphabeta.DICOM.ContourSlice;
-import alphabeta.DICOM.DICOMDose;
 import alphabeta.DICOM.DICOMPlan;
 import alphabeta.DICOM.Structure;
 import alphabeta.structure.Patient;
@@ -59,11 +58,11 @@ import javafx.stage.FileChooser;
 public class mainViewController implements Initializable {
 
     @FXML
-    private TreeView imageTreeView;
+    private TreeView planTreeView;
 
-    private ObservableList<CTImage> images = FXCollections.observableArrayList();
+    private final ObservableList<CTImage> images = FXCollections.observableArrayList();
 
-    private AlphaBeta mainApp;
+    private final AlphaBeta mainApp;
 
     @FXML
     private Canvas dicomView;
@@ -79,14 +78,18 @@ public class mainViewController implements Initializable {
 
     private Patient patient = new Patient();
 
-    private List<CTImage> activeImages = new ArrayList<>();
+    private DICOMPlan plan;
 
-    private ProgressForm pf = new ProgressForm();
+    private StructureSet ss;
+
+    private final List<CTImage> activeImages = new ArrayList<>();
+
+    private final ProgressForm pf = new ProgressForm();
 
     private double scaleFactor = 1.5;
 
     @FXML
-    private TreeView structureTree;
+    private TreeView detailsTreeView;
 
     @FXML
     private Label zLabel;
@@ -96,7 +99,7 @@ public class mainViewController implements Initializable {
 
     @FXML
     private Group structureGroup;
-    
+
     @FXML
     private TextField prescriptionDose;
 
@@ -116,9 +119,10 @@ public class mainViewController implements Initializable {
         imageScroll.setMax(3);
         imageScroll.setValue(0);
         zLabel.setVisible(false);
-        imageTreeView.setCellFactory(e -> new CustomCell());
-        imageTreeView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
-        imageTreeView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+        detailsTreeView.setCellFactory(e -> new CustomCell());
+        detailsTreeView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        planTreeView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
+        planTreeView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (oldSelection != newSelection || (TreeItem) oldSelection != ((TreeItem) newSelection).getParent()) {
                 if (((TreeItem) newSelection).getValue().equals("Topo")) {
                     activeImages.clear();
@@ -127,44 +131,31 @@ public class mainViewController implements Initializable {
                     zLabel.setVisible(false);
                     doseMax.setVisible(false);
                 }
-                if (((TreeItem) newSelection).getValue() instanceof StructureSet
-                        || ((TreeItem) newSelection).getValue() instanceof Structure
-                        || ((TreeItem) newSelection).getValue() instanceof DICOMPlan) {
-                    activeImages.clear();
-                    activeImages.addAll(patient.getCtImage());
-                    structurCanvas.setVisible(true);
-                    zLabel.setVisible(true);
-                    doseMax.setVisible(true);
-                }
-                imageScroll.setMax(activeImages.size() - 1);
-                if (imageScroll.getValue() > imageScroll.getMax()) {
-                    imageScroll.setValue(imageScroll.getMax());
-                }
-                try {
-                    if (!activeImages.isEmpty()) {
-                        this.dicomView.getGraphicsContext2D().clearRect(0, 0, this.dicomView.getWidth(), this.dicomView.getHeight());
-                        paintImage(SwingFXUtils.toFXImage(activeImages.get((int) imageScroll.getValue()).getDicom().getBufferedImage(), null));
-                        TreeItem tempItem = (TreeItem) imageTreeView.getSelectionModel().getSelectedItems().get(0);
-                        if (tempItem.getValue() instanceof StructureSet) {
-                            StructureSet temp = (StructureSet) tempItem.getValue();
-                            paintStructures((int) imageScroll.getValue(), temp.getStructure());
-                        } else if (tempItem.getValue() instanceof Structure) {
-                            StructureSet temp = (StructureSet) tempItem.getParent().getValue();
-                            paintStructures((int) imageScroll.getValue(), temp.getStructure());
-                        } else if (tempItem.getValue() instanceof DICOMPlan) {
-                            TreeItem itemTree = (TreeItem) tempItem.getChildren().get(0);
-                            StructureSet temp = (StructureSet) itemTree.getValue();
-                            paintStructures((int) imageScroll.getValue(), temp.getStructure());
-                        } else if (tempItem.getValue() instanceof DICOMDose) {
-                            
+                if (((TreeItem) newSelection).getValue() instanceof DICOMPlan) {
+                    this.plan = (DICOMPlan) ((TreeItem) newSelection).getValue();
+                    this.detailsTreeView.setRoot(new TreeItem(this.plan));
+                    this.detailsTreeView.getRoot().setExpanded(true);
+                    this.patient.getStructureSet().forEach(item -> {
+                        if (item.getUid().equals(this.plan.getReferenceUIDStructure())) {
+                            this.ss = item;
+                            TreeItem structureItem = new TreeItem(item.getName());
+                            structureItem.setExpanded(true);
+                            this.detailsTreeView.getRoot().getChildren().add(structureItem);
+                            item.getStructure().forEach(structure -> {
+                                structureItem.getChildren().add(new CheckBoxTreeItem(structure));
+                            });
                         }
-                        zLabel.setText(String.format("z: %.2f mm", activeImages.get((int) imageScroll.getValue()).getZ()));
-                    }
-                } catch (IOException ex) {
-                    Logger.getLogger(mainViewController.class.getName()).log(Level.SEVERE, null, ex);
+                    });
                 }
             }
         });
+
+        detailsTreeView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
+            if (oldSelection != newSelection || (TreeItem) oldSelection != ((TreeItem) newSelection).getParent()) {
+                displayImages(this.ss);
+            }
+        });
+
         stackedPane.setOnScroll((ScrollEvent event) -> {
             double deltaY = event.getDeltaY();
             double step = deltaY < 0 ? 1 : -1;
@@ -178,27 +169,38 @@ public class mainViewController implements Initializable {
         imageScroll.valueProperty().addListener((obs, oldValue, newValue) -> {
             try {
                 if (!activeImages.isEmpty()) {
-
                     this.dicomView.getGraphicsContext2D().clearRect(0, 0, this.dicomView.getWidth(), this.dicomView.getHeight());
                     paintImage(SwingFXUtils.toFXImage(activeImages.get(newValue.intValue()).getDicom().getBufferedImage(), null));
-                    TreeItem tempItem = (TreeItem) imageTreeView.getSelectionModel().getSelectedItems().get(0);
-                    if (tempItem.getValue() instanceof StructureSet) {
-                        StructureSet temp = (StructureSet) tempItem.getValue();
-                        paintStructures((int) imageScroll.getValue(), temp.getStructure());
-                    } else if (tempItem.getValue() instanceof Structure) {
-                        StructureSet temp = (StructureSet) tempItem.getParent().getValue();
-                        paintStructures((int) imageScroll.getValue(), temp.getStructure());
-                    } else if (tempItem.getValue() instanceof DICOMPlan) {
-                        TreeItem itemTree = (TreeItem) tempItem.getChildren().get(0);
-                        StructureSet temp = (StructureSet) itemTree.getValue();
-                        paintStructures((int) imageScroll.getValue(), temp.getStructure());
-                    }
+                    paintStructures((int) imageScroll.getValue(), ss.getStructure());
                     zLabel.setText(String.format("z: %.2f mm", activeImages.get(newValue.intValue()).getZ()));
                 }
             } catch (IOException ex) {
                 Logger.getLogger(mainViewController.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
+    }
+
+    private void displayImages(StructureSet ss) {
+        activeImages.clear();
+        activeImages.addAll(patient.getCtImage());
+        structurCanvas.setVisible(true);
+        zLabel.setVisible(true);
+        doseMax.setVisible(true);
+
+        imageScroll.setMax(activeImages.size() - 1);
+        if (imageScroll.getValue() > imageScroll.getMax()) {
+            imageScroll.setValue(imageScroll.getMax());
+        }
+        try {
+            if (!activeImages.isEmpty()) {
+                this.dicomView.getGraphicsContext2D().clearRect(0, 0, this.dicomView.getWidth(), this.dicomView.getHeight());
+                paintImage(SwingFXUtils.toFXImage(activeImages.get((int) imageScroll.getValue()).getDicom().getBufferedImage(), null));
+                paintStructures((int) imageScroll.getValue(), ss.getStructure());
+                zLabel.setText(String.format("z: %.2f mm", activeImages.get((int) imageScroll.getValue()).getZ()));
+            }
+        } catch (IOException ex) {
+            Logger.getLogger(mainViewController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private void paintStructures(int indexOfCt, List<Structure> structures) {
@@ -225,52 +227,27 @@ public class mainViewController implements Initializable {
             LoadThread loadTask = new LoadThread(files);
             loadTask.setOnSucceeded((WorkerStateEvent event1) -> {
                 patient = loadTask.getValue();
-                structureTree.setRoot(new TreeItem(patient.getPatientName()));
-                imageTreeView.setRoot(new TreeItem(patient.getPatientName()));
+                planTreeView.setRoot(new TreeItem(patient.getPatientName()));
                 if (!patient.getTopo().isEmpty()) {
                     TreeItem topoItem = new TreeItem("Topo");
-                    imageTreeView.getRoot().getChildren().add(topoItem);
+                    planTreeView.getRoot().getChildren().add(topoItem);
                 }
                 if (!patient.getPlan().isEmpty()) {
-                    patient.getPlan().stream().map((DICOMPlan plan) -> {
-                        TreeItem planItem = new TreeItem(plan);
-                        if (!patient.getStructureSet().isEmpty()) {
-                            patient.getStructureSet().stream().filter((structureSet) -> (plan.getReferenceUIDStructure() == null ? structureSet.getUid() == null : plan.getReferenceUIDStructure().equals(structureSet.getUid()))).map((StructureSet structureSet) -> {
-                                TreeItem item = new TreeItem(structureSet);
-                                item.setExpanded(true);
-                                structureSet.getStructure().stream().map((structItem) -> new CheckBoxTreeItem(structItem)).forEachOrdered((subItem) -> {
-                                    item.getChildren().add(subItem);
-                                });
-                                return item;
-                            }).forEachOrdered((item) -> {
-                                planItem.getChildren().add(item);
-                            });
-                        }
-                        if(!patient.getDose().isEmpty()){
-                            patient.getDose().stream().filter((dose) -> (plan.getReferenceUIDDose() == null ? dose.getUid() == null : plan.getReferenceUIDDose().equals(dose.getUid()))).map((DICOMDose dose) -> {
-                                TreeItem item = new TreeItem(dose);
-                                item.setExpanded(true);
-                                return item;
-                            }).forEachOrdered((item) -> {
-                                planItem.getChildren().add(item);
-                            });
-                        }
-                        return planItem;
-                    }).map((planItem) -> {
-                        structureTree.getRoot().getChildren().add(planItem);
+                    patient.getPlan().stream().map((DICOMPlan planTemp) -> {
+                        TreeItem planItem = new TreeItem(planTemp);
                         return planItem;
                     }).forEachOrdered((planItem) -> {
-                        imageTreeView.getRoot().getChildren().add(planItem);
+                        planTreeView.getRoot().getChildren().add(planItem);
                     });
                 }
-                imageTreeView.getRoot().setExpanded(true);
-                structureTree.getRoot().setExpanded(true);
+                planTreeView.getRoot().setExpanded(true);
                 pf.getDialogStage().close();
             });
             try {
                 pf.activateProgressBar(loadTask);
             } catch (InterruptedException ex) {
-                Logger.getLogger(mainViewController.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(mainViewController.class
+                        .getName()).log(Level.SEVERE, null, ex);
             }
             pf.getDialogStage().show();
             Thread th = new Thread(loadTask);
@@ -300,7 +277,7 @@ public class mainViewController implements Initializable {
     public void paintStructur(Structure structure, CTImage ctImage) {
         GraphicsContext gc = this.structurCanvas.getGraphicsContext2D();
         DecimalFormat format = new DecimalFormat("###000.##");
-        
+
         gc.setStroke(structure.getColor());
         //Find the correct Slice to paint ContourSlice;
         for (ContourSlice item : structure.getPoints()) {
@@ -332,6 +309,7 @@ public class mainViewController implements Initializable {
     // Methode für die Berechnung der Distanz zwischen zwei Punkten.
     public static double getDistance(double xP1, double yP1, double xP2, double yP2) {
         return Math.sqrt(Math.pow((xP2 - xP1), 2) + Math.pow((yP2 - yP1), 2));
+
     }
 
     class CustomCell extends TreeCell<Object> {
@@ -362,14 +340,7 @@ public class mainViewController implements Initializable {
                     cellBox.getChildren().addAll(checkBox, paintBox(((Structure) item).getColor()), label);
                     checkBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
                         ((Structure) item).setVisible(checkBox.isSelected());
-                        TreeItem tempItem = (TreeItem) imageTreeView.getSelectionModel().getSelectedItems().get(0);
-                        if (tempItem.getValue() instanceof StructureSet) {
-                            StructureSet temp = (StructureSet) tempItem.getValue();
-                            paintStructures((int) imageScroll.getValue(), temp.getStructure());
-                        } else if (tempItem.getValue() instanceof Structure) {
-                            StructureSet temp = (StructureSet) tempItem.getParent().getValue();
-                            paintStructures((int) imageScroll.getValue(), temp.getStructure());
-                        }
+                        paintStructures((int) imageScroll.getValue(), ss.getStructure());
                     });
                     // We set the cellBox as the graphic of the cell.
                     setGraphic(cellBox);
