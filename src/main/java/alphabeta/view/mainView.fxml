@@ -1,0 +1,164 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.canvas.*?>
+<?import javafx.scene.chart.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.input.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.Group?>
+<?import javafx.scene.canvas.Canvas?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ChoiceBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollBar?>
+<?import javafx.scene.control.SeparatorMenuItem?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.Tab?>
+<?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.ToolBar?>
+<?import javafx.scene.control.TreeView?>
+<?import javafx.scene.input.KeyCodeCombination?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Pane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="813.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="alphabeta.view.mainViewController">
+  <children>
+    <MenuBar VBox.vgrow="NEVER">
+      <menus>
+        <Menu mnemonicParsing="false" text="Datei">
+          <items>
+            <MenuItem mnemonicParsing="false" onAction="#loadImage" text="Öffne Plan">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="O" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
+            <SeparatorMenuItem mnemonicParsing="false" />
+            <MenuItem mnemonicParsing="false" onAction="#shutdownApp" text="Beenden">
+                     <accelerator>
+                        <KeyCodeCombination alt="UP" code="Q" control="DOWN" meta="UP" shift="UP" shortcut="UP" />
+                     </accelerator></MenuItem>
+          </items>
+        </Menu>
+            <Menu mnemonicParsing="false" text="Einstellung">
+              <items>
+                <MenuItem mnemonicParsing="false" text="Datenbank" />
+              </items>
+            </Menu>
+      </menus>
+    </MenuBar>
+      <ToolBar prefHeight="40.0" prefWidth="200.0">
+        <items>
+          <Button mnemonicParsing="false" onAction="#loadImage" text="Öffne Plan" />
+            <Button mnemonicParsing="false" onAction="#shutdownApp" text="Beenden" />
+        </items>
+      </ToolBar>
+      <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="SOMETIMES">
+         <tabs>
+            <Tab text="Übersicht">
+               <content>
+                  <HBox>
+                     <children>
+                        <TreeView fx:id="structureTree" />
+                        <VBox HBox.hgrow="SOMETIMES">
+                           <children>
+                              <GridPane VBox.vgrow="NEVER">
+                                <columnConstraints>
+                                  <ColumnConstraints halignment="RIGHT" hgrow="NEVER" minWidth="10.0" prefWidth="125.0" />
+                                    <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints halignment="RIGHT" hgrow="NEVER" maxWidth="125.0" minWidth="10.0" prefWidth="125.0" />
+                                  <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="100.0" />
+                                    <ColumnConstraints halignment="RIGHT" hgrow="NEVER" minWidth="10.0" prefWidth="125.0" />
+                                    <ColumnConstraints hgrow="NEVER" minWidth="10.0" prefWidth="125.0" />
+                                </columnConstraints>
+                                <rowConstraints>
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                    <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                  <RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
+                                </rowConstraints>
+                                 <children>
+                                    <Label text="Patient:" />
+                                    <Label text="Plan:" GridPane.rowIndex="1" />
+                                    <Label text="Verordnungsdosis [Gy]:" GridPane.rowIndex="2" />
+                                    <Label text="Dosis Maximum [Gy]:" GridPane.rowIndex="3" />
+                                    <TextField fx:id="patientTF" editable="false" GridPane.columnIndex="1" />
+                                    <TextField editable="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+                                    <TextField editable="false" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+                                    <TextField editable="false" GridPane.columnIndex="1" GridPane.rowIndex="3" />
+                                    <Label text="Stuktur:" GridPane.columnIndex="2" />
+                                    <Label text="Volumen [cm³]:" GridPane.columnIndex="2" GridPane.rowIndex="1" />
+                                    <Label text="Dosis Maximum [Gy]:" GridPane.columnIndex="2" GridPane.rowIndex="2" />
+                                    <Label text="Dosis Mittelwert [Gy]:" GridPane.columnIndex="2" GridPane.rowIndex="3" />
+                                    <TextField editable="false" GridPane.columnIndex="3" />
+                                    <TextField editable="false" GridPane.columnIndex="3" GridPane.rowIndex="1" />
+                                    <TextField editable="false" GridPane.columnIndex="3" GridPane.rowIndex="2" />
+                                    <TextField editable="false" GridPane.columnIndex="3" GridPane.rowIndex="3" />
+                                    <Label text="gewähltes AlphaBeta:" GridPane.columnIndex="4" />
+                                    <Label text="normierte Dosis [Gy]:" GridPane.columnIndex="4" GridPane.rowIndex="1" />
+                                    <TextField editable="false" GridPane.columnIndex="5" GridPane.rowIndex="1" />
+                                    <ChoiceBox prefWidth="150.0" GridPane.columnIndex="5" />
+                                 </children>
+                              </GridPane>
+                              <LineChart horizontalGridLinesVisible="false" VBox.vgrow="SOMETIMES">
+                                <xAxis>
+                                  <CategoryAxis side="BOTTOM" />
+                                </xAxis>
+                                <yAxis>
+                                  <NumberAxis side="LEFT" />
+                                </yAxis>
+                              </LineChart>
+                           </children>
+                        </VBox>
+                     </children>
+                  </HBox>
+               </content>
+            </Tab>
+            <Tab text="Image">
+              <content>
+                  <HBox>
+                     <children>
+                        <SplitPane dividerPositions="0.333" orientation="VERTICAL">
+                           <items>
+                              <TreeView fx:id="planTreeView" />
+                              <TreeView fx:id="detailsTreeView" />
+                           </items>
+                        </SplitPane>
+                        <HBox prefHeight="700.0" prefWidth="855.0">
+                           <children>
+                              <StackPane fx:id="stackedPane" HBox.hgrow="SOMETIMES">
+                                 <children>
+                                    <Canvas fx:id="dicomView" height="700.0" width="855.0" />
+                                    <Pane>
+                                       <children>
+                                          <Label fx:id="zLabel" layoutX="14.0" layoutY="673.0" text="Z: [cm]" visible="false" />
+                                          <Label fx:id="doseMax" layoutX="700.0" text="Dosismaximum: " visible="false" />
+                                       </children>
+                                    </Pane>
+                                    <Canvas fx:id="structurCanvas" height="700.0" width="855.0" />
+                                    <Group fx:id="structureGroup" autoSizeChildren="false" />
+                                 </children>
+                              </StackPane>
+                              <ScrollBar fx:id="imageScroll" blockIncrement="1.0" max="3.0" orientation="VERTICAL" prefHeight="700.0" visibleAmount="1.0" />
+                           </children>
+                        </HBox>
+                     </children>
+                  </HBox>
+              </content>
+            </Tab>
+         </tabs>
+      </TabPane>
+  </children>
+</VBox>
