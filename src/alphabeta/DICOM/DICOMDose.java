@@ -5,11 +5,23 @@
  */
 package alphabeta.DICOM;
 
+import RawDCMLibary.DICOM.DICOMFile;
+import RawDCMLibary.model.FileDicomTagTable;
 import alphabeta.structure.IsodoseLevel;
 import alphabeta.structure.enums.SummationType;
+import com.pixelmed.dicom.Attribute;
+import com.pixelmed.dicom.AttributeList;
+import com.pixelmed.dicom.AttributeTag;
+import com.pixelmed.dicom.DicomException;
+import com.pixelmed.dicom.OtherWordAttribute;
+import com.pixelmed.dicom.TagFromName;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import org.dcm4che3.data.Tag;
 
 /**
  *
@@ -17,6 +29,8 @@ import java.util.List;
  *
  */
 public class DICOMDose extends DICOM {
+
+    private DICOM parent;
 
     private List<DoseMatrix> doseCube = new ArrayList<>();
 
@@ -53,6 +67,10 @@ public class DICOMDose extends DICOM {
     private int row;
 
     private int column;
+
+    public DICOMDose(DICOM parent) {
+        this.parent = parent;
+    }
 
     public List<DoseMatrix> getDoseCube() {
         return doseCube;
@@ -157,6 +175,22 @@ public class DICOMDose extends DICOM {
 
     public void setImageOrientationPatient(double[] imageOrientationPatient) {
         this.imageOrientationPatient = imageOrientationPatient;
+    }
+
+    public void readDoseFromFile(String filePath) {
+        try {
+            DICOMFile rf = new DICOMFile(filePath);
+            rf.readHeader();
+            int[] data = rf.getPixelData();
+            this.doseData = new double[data.length];
+            for (int i = 0; i < data.length; i++) {
+                this.doseData[i] = data[i]*this.doseGridScaling;
+            }
+            this.generateDoseCube();
+        } catch (IOException ex) {
+            Logger.getLogger(DICOMDose.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
     }
 
     public void generateDoseCube() {

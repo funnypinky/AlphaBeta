@@ -19,16 +19,10 @@ import alphabeta.structure.enums.SummationType;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javafx.concurrent.Task;
-import jep.Jep;
-import jep.JepException;
-import jep.NDArray;
 import org.dcm4che3.data.Attributes;
 import org.dcm4che3.data.Sequence;
 import org.dcm4che3.data.Tag;
-import org.python.util.PythonInterpreter;
 
 /**
  *
@@ -38,7 +32,6 @@ public class LoadThread extends Task<Patient> {
 
     List<File> files;
     Patient patient = new Patient();
-    PythonInterpreter interpreter = new PythonInterpreter();
 
     private int ctRows;
     private int ctCols;
@@ -137,39 +130,30 @@ public class LoadThread extends Task<Patient> {
     }
 
     private DICOMDose readDose(DICOM rpDICOM) {
-        DICOMDose dose = new DICOMDose();
-        try {
-            Jep jep = new Jep();
-            jep.set("filePath", rpDICOM.getDicomFile().getAbsolutePath());
-            dose.setScaleFactorY((double) ctCols / (double) rpDICOM.getAttributes().getInt(Tag.Rows, -1));
-            dose.setScaleFactorX((double) ctRows / (double) rpDICOM.getAttributes().getInt(Tag.Columns, -1));
-            dose.setUid(rpDICOM.getAttributes().getString(Tag.SOPInstanceUID));
-            dose.setDoseGridScaling(rpDICOM.getAttributes().getDouble(Tag.DoseGridScaling, 1.0));
-            dose.setResolutionX(rpDICOM.getAttributes().getDoubles(Tag.PixelSpacing)[0]);
-            dose.setResolutionY(rpDICOM.getAttributes().getDoubles(Tag.PixelSpacing)[1]);
-            dose.setResolutionZ(rpDICOM.getAttributes().getDouble(Tag.SliceThickness, 0));
-            dose.setGridFrameOffsetVector(rpDICOM.getAttributes().getDoubles(Tag.GridFrameOffsetVector));
-            dose.setImagePositionPatient(rpDICOM.getAttributes().getDoubles(Tag.ImagePositionPatient));
-            dose.setImageOrientationPatient(rpDICOM.getAttributes().getDoubles(Tag.ImageOrientationPatient));
-            dose.setRow(rpDICOM.getAttributes().getInt(Tag.Rows, 0));
-            dose.setColumn(rpDICOM.getAttributes().getInt(Tag.Columns, 0));
-            switch (rpDICOM.getAttributes().getString(Tag.DoseSummationType)) {
-                case ("PLAN"):
-                    dose.setSummationType(SummationType.PLAN);
-                    break;
-                case ("BEAM"):
-                    dose.setSummationType(SummationType.BEAM);
-                    break;
-            }
-            jep.runScript("script.py");
-            NDArray tt = (NDArray) jep.getValue("doseData");
-            dose.setDoseData((double[]) tt.getData());
-            System.out.println("Max: " + dose.getDoseMax());
-            System.out.println("Min: " + dose.getDoseMin());
-        } catch (JepException ex) {
-            Logger.getLogger(DICOMDose.class.getName()).log(Level.SEVERE, null, ex);
-            System.exit(-1);
+        DICOMDose dose = new DICOMDose(rpDICOM);
+        dose.setScaleFactorY((double) ctCols / (double) rpDICOM.getAttributes().getInt(Tag.Rows, -1));
+        dose.setScaleFactorX((double) ctRows / (double) rpDICOM.getAttributes().getInt(Tag.Columns, -1));
+        dose.setUid(rpDICOM.getAttributes().getString(Tag.SOPInstanceUID));
+        dose.setDoseGridScaling(rpDICOM.getAttributes().getDouble(Tag.DoseGridScaling, 1.0));
+        dose.setResolutionX(rpDICOM.getAttributes().getDoubles(Tag.PixelSpacing)[0]);
+        dose.setResolutionY(rpDICOM.getAttributes().getDoubles(Tag.PixelSpacing)[1]);
+        dose.setResolutionZ(rpDICOM.getAttributes().getDouble(Tag.SliceThickness, 0));
+        dose.setGridFrameOffsetVector(rpDICOM.getAttributes().getDoubles(Tag.GridFrameOffsetVector));
+        dose.setImagePositionPatient(rpDICOM.getAttributes().getDoubles(Tag.ImagePositionPatient));
+        dose.setImageOrientationPatient(rpDICOM.getAttributes().getDoubles(Tag.ImageOrientationPatient));
+        dose.setRow(rpDICOM.getAttributes().getInt(Tag.Rows, 0));
+        dose.setColumn(rpDICOM.getAttributes().getInt(Tag.Columns, 0));
+        switch (rpDICOM.getAttributes().getString(Tag.DoseSummationType)) {
+            case ("PLAN"):
+                dose.setSummationType(SummationType.PLAN);
+                break;
+            case ("BEAM"):
+                dose.setSummationType(SummationType.BEAM);
+                break;
         }
+        dose.readDoseFromFile(rpDICOM.getDicomFile().getAbsolutePath());
+        System.out.println("Max: " + dose.getDoseMax());
+        System.out.println("Min: " + dose.getDoseMin());
         return dose;
     }
 
