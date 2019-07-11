@@ -6,7 +6,8 @@
 package alphabeta.view;
 
 import alphabeta.AlphaBeta;
-import alphabeta.DICOM.CTImage;
+import alphabeta.DICOM.CTImageStack;
+import alphabeta.DICOM.TransversalImage;
 import alphabeta.DICOM.ContourSlice;
 import alphabeta.DICOM.DICOMPlan;
 import alphabeta.DICOM.Structure;
@@ -47,8 +48,6 @@ import javafx.scene.image.Image;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
-import javafx.scene.paint.Color;
-import javafx.scene.shape.Rectangle;
 import javafx.stage.FileChooser;
 
 /**
@@ -60,7 +59,7 @@ public class mainViewController implements Initializable {
     @FXML
     private TreeView planTreeView;
 
-    private final ObservableList<CTImage> images = FXCollections.observableArrayList();
+    private final ObservableList<TransversalImage> images = FXCollections.observableArrayList();
 
     private final AlphaBeta mainApp;
 
@@ -82,7 +81,7 @@ public class mainViewController implements Initializable {
 
     private StructureSet ss;
 
-    private final List<CTImage> activeImages = new ArrayList<>();
+    private final List<TransversalImage> activeImages = new ArrayList<>();
 
     private final ProgressForm pf = new ProgressForm();
 
@@ -119,14 +118,14 @@ public class mainViewController implements Initializable {
         imageScroll.setMax(3);
         imageScroll.setValue(0);
         zLabel.setVisible(false);
-        detailsTreeView.setCellFactory(e -> new CustomCell());
+        detailsTreeView.setCellFactory(e -> new StructureCustomCell());
         detailsTreeView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         planTreeView.getSelectionModel().setSelectionMode(SelectionMode.SINGLE);
         planTreeView.getSelectionModel().selectedItemProperty().addListener((obs, oldSelection, newSelection) -> {
             if (oldSelection != newSelection || (TreeItem) oldSelection != ((TreeItem) newSelection).getParent()) {
                 if (((TreeItem) newSelection).getValue().equals("Topo")) {
                     activeImages.clear();
-                    activeImages.addAll(patient.getTopo());
+                    activeImages.addAll(patient.getTopo().values());
                     structurCanvas.setVisible(false);
                     zLabel.setVisible(false);
                     doseMax.setVisible(false);
@@ -135,7 +134,7 @@ public class mainViewController implements Initializable {
                     this.plan = (DICOMPlan) ((TreeItem) newSelection).getValue();
                     this.detailsTreeView.setRoot(new TreeItem(this.plan));
                     this.detailsTreeView.getRoot().setExpanded(true);
-                    this.patient.getStructureSet().forEach(item -> {
+                    this.patient.getStructureSet().values().forEach(item -> {
                         if (item.getUid().equals(this.plan.getReferenceUIDStructure())) {
                             this.ss = item;
                             TreeItem structureItem = new TreeItem(item.getName());
@@ -182,7 +181,11 @@ public class mainViewController implements Initializable {
 
     private void displayImages(StructureSet ss) {
         activeImages.clear();
-        activeImages.addAll(patient.getCtImage());
+        for(CTImageStack ct: this.patient.getCtImage().values()){
+            if (ct.getReferenceFrame().equals(ss.getReferenceCtUID())){
+                activeImages.addAll(ct.getImages());
+            }
+        }
         structurCanvas.setVisible(true);
         zLabel.setVisible(true);
         doseMax.setVisible(true);
@@ -232,8 +235,8 @@ public class mainViewController implements Initializable {
                     TreeItem topoItem = new TreeItem("Topo");
                     planTreeView.getRoot().getChildren().add(topoItem);
                 }
-                if (!patient.getPlan().isEmpty()) {
-                    patient.getPlan().stream().map((DICOMPlan planTemp) -> {
+                if (!patient.getDICOMPlan().isEmpty()) {
+                    patient.getDICOMPlan().values().stream().map((DICOMPlan planTemp) -> {
                         TreeItem planItem = new TreeItem(planTemp);
                         return planItem;
                     }).forEachOrdered((planItem) -> {
@@ -257,12 +260,6 @@ public class mainViewController implements Initializable {
 
     }
 
-    private Rectangle paintBox(Color color) {
-        Rectangle rectangle = new Rectangle(10, 10);
-        rectangle.setFill(color);
-        return rectangle;
-    }
-
     public void paintImage(Image image) {
         GraphicsContext gc = this.dicomView.getGraphicsContext2D();
         gc.drawImage(image, 0, 0, image.getWidth() * scaleFactor, image.getHeight() * scaleFactor);
@@ -274,7 +271,7 @@ public class mainViewController implements Initializable {
      * @param ctImage
      *
      */
-    public void paintStructur(Structure structure, CTImage ctImage) {
+    public void paintStructur(Structure structure, TransversalImage ctImage) {
         GraphicsContext gc = this.structurCanvas.getGraphicsContext2D();
         DecimalFormat format = new DecimalFormat("###000.##");
 
@@ -312,7 +309,7 @@ public class mainViewController implements Initializable {
 
     }
 
-    class CustomCell extends TreeCell<Object> {
+    class StructureCustomCell extends TreeCell<Object> {
 
         @Override
         protected void updateItem(Object item, boolean empty) {
@@ -336,8 +333,8 @@ public class mainViewController implements Initializable {
                     Label label = new Label(item.toString());
                     // Here we bind the pref height of the label to the height of the checkbox. This way the label and the checkbox will have the same size. 
                     checkBox.prefHeightProperty().bind(label.prefHeightProperty());
-
-                    cellBox.getChildren().addAll(checkBox, paintBox(((Structure) item).getColor()), label);
+                    checkBox.setStyle("-fx-base:#"+((Structure) item).getColor().toString().substring(2));
+                    cellBox.getChildren().addAll(checkBox, label);
                     checkBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
                         ((Structure) item).setVisible(checkBox.isSelected());
                         paintStructures((int) imageScroll.getValue(), ss.getStructure());

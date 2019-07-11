@@ -6,22 +6,14 @@
 package alphabeta.DICOM;
 
 import RawDCMLibary.DICOM.DICOMFile;
-import RawDCMLibary.model.FileDicomTagTable;
 import alphabeta.structure.IsodoseLevel;
 import alphabeta.structure.enums.SummationType;
-import com.pixelmed.dicom.Attribute;
-import com.pixelmed.dicom.AttributeList;
-import com.pixelmed.dicom.AttributeTag;
-import com.pixelmed.dicom.DicomException;
-import com.pixelmed.dicom.OtherWordAttribute;
-import com.pixelmed.dicom.TagFromName;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.dcm4che3.data.Tag;
 
 /**
  *

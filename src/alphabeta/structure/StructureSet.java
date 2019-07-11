@@ -20,6 +20,8 @@ public class StructureSet {
     private String uid;
 
     private String referenceCtUID;
+    
+    private String referenceStudyID;
 
     private final List<Structure> structure = new ArrayList<>();
 
@@ -60,4 +62,13 @@ public class StructureSet {
         return name;
     }
 
+    public String getReferenceStudyID() {
+        return referenceStudyID;
+    }
+
+    public void setReferenceStudyID(String referenceStudyID) {
+        this.referenceStudyID = referenceStudyID;
+    }
+
+    
 }

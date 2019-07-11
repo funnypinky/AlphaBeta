@@ -11,7 +11,7 @@ import org.dcm4che3.data.Tag;
  *
  * @author shaesler
  */
-public class CTImage extends DICOM {
+public class TransversalImage extends DICOM {
     
     private double x;
     private double y;
@@ -19,7 +19,7 @@ public class CTImage extends DICOM {
            
     private final DICOM dicom;
     
-    public CTImage(DICOM dicom) {
+    public TransversalImage(DICOM dicom) {
         this.dicom = dicom;
         String[] temp = this.dicom.getAttributes().getStrings(Tag.ImagePositionPatient);
         this.x = Double.valueOf(temp[0]);

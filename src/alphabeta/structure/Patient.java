@@ -5,10 +5,14 @@
  */
 package alphabeta.structure;
 
+import alphabeta.DICOM.CTImageStack;
 import alphabeta.DICOM.DICOMPlan;
-import alphabeta.DICOM.CTImage;
+import alphabeta.DICOM.TransversalImage;
 import alphabeta.DICOM.DICOMDose;
+import alphabeta.DICOM.Plan;
+
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -19,15 +23,17 @@ public class Patient {
 
     private String patientName;
 
-    private List<DICOMDose> dose = new ArrayList<>();
+    private final HashMap<String, DICOMDose> dose = new HashMap<>();
     
-    private List<DICOMPlan> plan = new ArrayList<>();
+    private final HashMap<String, DICOMPlan> plan = new HashMap<>();
 
-    private List<CTImage> topo = new ArrayList<>();
+    private final HashMap<String, TransversalImage> topo = new HashMap<>();
 
-    private List<CTImage> ctImage = new ArrayList<>();
+    private final HashMap<String, CTImageStack> ctImage = new HashMap<>();
 
-    private List<StructureSet> structureSet = new ArrayList<>();
+    private final HashMap<String, StructureSet> structureSet = new HashMap<>();
+    
+    private final List<Plan> plans = new ArrayList<>();
 
     public String getPatientName() {
         return this.patientName;
@@ -37,24 +43,28 @@ public class Patient {
         this.patientName = patientName;
     }
 
-    public List<DICOMPlan> getPlan() {
+    public HashMap<String, DICOMPlan> getDICOMPlan() {
         return plan;
     }
 
-    public List<CTImage> getTopo() {
+    public HashMap<String, TransversalImage> getTopo() {
         return topo;
     }
 
-    public List<CTImage> getCtImage() {
+    public HashMap<String, CTImageStack> getCtImage() {
         return ctImage;
     }
 
-    public List<StructureSet> getStructureSet() {
+    public HashMap<String, StructureSet> getStructureSet() {
         return structureSet;
     }
 
-    public List<DICOMDose> getDose() {
+    public HashMap<String, DICOMDose> getDose() {
         return dose;
+    }
+
+    public List<Plan> getPlan() {
+        return plans;
     }
     
 }

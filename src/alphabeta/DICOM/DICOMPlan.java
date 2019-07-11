@@ -88,5 +88,4 @@ public class DICOMPlan {
     public void setFraction(double fraction) {
         this.fraction = fraction;
     }
-    
 }

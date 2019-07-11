@@ -1,6 +1,6 @@
 package alphabeta.structure;
 
-import alphabeta.DICOM.CTImage;
+import alphabeta.DICOM.TransversalImage;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +18,7 @@ public class Plan {
     private float dose;
     private List<PTV> PTV = new ArrayList<>();
     private List<OAR> OAR = new ArrayList<>();
-    private List<CTImage> ctImages=  new ArrayList<>();
+    private List<TransversalImage> ctImages=  new ArrayList<>();
 
     
     /**
@@ -177,11 +177,11 @@ public class Plan {
         return eIndex;
     }
 
-    public List<CTImage> getCtImages() {
+    public List<TransversalImage> getCtImages() {
         return ctImages;
     }
 
-    public void setCtImages(List<CTImage> ctImages) {
+    public void setCtImages(List<TransversalImage> ctImages) {
         this.ctImages = ctImages;
     }
     

@@ -5,12 +5,14 @@
  */
 package alphabeta.thread;
 
-import alphabeta.DICOM.CTImage;
+import alphabeta.DICOM.CTImageStack;
+import alphabeta.DICOM.TransversalImage;
 import alphabeta.DICOM.ContourSlice;
 import alphabeta.DICOM.DICOM;
 import alphabeta.DICOM.DICOMDose;
 import alphabeta.DICOM.DICOMPlan;
 import alphabeta.DICOM.Field;
+import alphabeta.DICOM.Plan;
 import alphabeta.DICOM.Structure;
 import alphabeta.structure.Patient;
 import alphabeta.structure.StructureSet;
@@ -152,8 +154,6 @@ public class LoadThread extends Task<Patient> {
                 break;
         }
         dose.readDoseFromFile(rpDICOM.getDicomFile().getAbsolutePath());
-        System.out.println("Max: " + dose.getDoseMax());
-        System.out.println("Min: " + dose.getDoseMin());
         return dose;
     }
 
@@ -171,29 +171,44 @@ public class LoadThread extends Task<Patient> {
                 case CT:
                     this.ctCols = dcmTemp.getAttributes().getInt(Tag.Columns, -1);
                     this.ctRows = dcmTemp.getAttributes().getInt(Tag.Rows, -1);
+                    TransversalImage tmpImg =  new TransversalImage(dcmTemp);
                     if (dcmTemp.getCSImageType()[2].equalsIgnoreCase("axial")) {
-                        patient.getCtImage().add(new CTImage(dcmTemp));
+                        String series = dcmTemp.getAttributes().getString(Tag.SeriesInstanceUID);
+                        if(!this.patient.getCtImage().containsKey(series)) {
+                        this.patient.getCtImage().put(series, 
+                        new CTImageStack(dcmTemp.getAttributes().getString(Tag.SeriesInstanceUID), dcmTemp.getAttributes().getString(Tag.StudyInstanceUID)));
+                        this.patient.getCtImage().get(series).setReferenceFrame(dcmTemp.getAttributes().getString(Tag.FrameOfReferenceUID));
+                    }
+                        this.patient.getCtImage().get(series).getImages().add(tmpImg);
                     } else if (dcmTemp.getCSImageType()[2].equalsIgnoreCase("LOCALIZER")) {
-                        patient.getTopo().add(new CTImage(dcmTemp));
+                        patient.getTopo().put(tmpImg.getUID(), tmpImg);
                     }
                     break;
                 case RTSTRUCT:
                     StructureSet rtSS = new StructureSet(dcmTemp.getAttributes().getString(Tag.StructureSetLabel));
                     rtSS.setUid(dcmTemp.getAttributes().getString(Tag.SOPInstanceUID));
                     Sequence tempRef = dcmTemp.getAttributes().getSequence(Tag.ReferencedFrameOfReferenceSequence);
-                    rtSS.setReferenceCtUID(tempRef.get(0).getString(Tag.ReferencedFrameOfReferenceUID));
+                    String test = tempRef.get(0).getString(Tag.FrameOfReferenceUID);
+                    rtSS.setReferenceCtUID(test);
                     rtSS.getStructure().addAll(readStructureSet(dcmTemp));
-                    patient.getStructureSet().add(rtSS);
+                    patient.getStructureSet().put(rtSS.getUid(), rtSS);
                     break;
                 case RTPLAN:
-                    patient.getPlan().add(readPlan(dcmTemp));
+                    DICOMPlan tmp = readPlan(dcmTemp);
+                    patient.getDICOMPlan().put(tmp.getUid(),tmp);
+                    patient.getPlan().add(new Plan(tmp.getUid()));
                     break;
                 case RTDOSE:
-                    patient.getDose().add(readDose(dcmTemp));
+                    DICOMDose tmpDose = readDose(dcmTemp);
+                    patient.getDose().put(tmpDose.getUid(), tmpDose);
                     break;
             }
         }
+        mergePlans();
         return patient;
     }
 
+    private void mergePlans() {
+        
+    }
 }
