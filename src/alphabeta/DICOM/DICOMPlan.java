@@ -19,6 +19,7 @@ public class DICOMPlan {
     private String uid;
     private String referenceUIDStructure;
     private String referenceUIDDose;
+    private String referenceUID;
     private ApprovStatus approvStatus;
     private final List<Field> fields = new ArrayList<>();
     private double planDose;
@@ -88,4 +89,14 @@ public class DICOMPlan {
     public void setFraction(double fraction) {
         this.fraction = fraction;
     }
+
+    public String getReferenceUID() {
+        return referenceUID;
+    }
+
+    public void setReferenceUID(String referenceUID) {
+        this.referenceUID = referenceUID;
+    }
+    
+    
 }

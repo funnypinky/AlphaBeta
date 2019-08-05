@@ -195,11 +195,13 @@ public class LoadThread extends Task<Patient> {
                     break;
                 case RTPLAN:
                     DICOMPlan tmp = readPlan(dcmTemp);
+                    tmp.setReferenceUID(dcmTemp.getAttributes().getString(Tag.FrameOfReferenceUID));
                     patient.getDICOMPlan().put(tmp.getUid(),tmp);
                     patient.getPlan().add(new Plan(tmp.getUid()));
                     break;
                 case RTDOSE:
                     DICOMDose tmpDose = readDose(dcmTemp);
+                    tmpDose.setReferenceUID(dcmTemp.getAttributes().getString(Tag.FrameOfReferenceUID));
                     patient.getDose().put(tmpDose.getUid(), tmpDose);
                     break;
             }

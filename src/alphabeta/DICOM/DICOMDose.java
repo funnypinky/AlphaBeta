@@ -59,6 +59,8 @@ public class DICOMDose extends DICOM {
     private int row;
 
     private int column;
+    
+    private String referenceUID;
 
     public DICOMDose(DICOM parent) {
         this.parent = parent;
@@ -314,6 +316,22 @@ public class DICOMDose extends DICOM {
 
     public void setCtimageCols(double ctimageCols) {
         this.ctimageCols = ctimageCols;
+    }
+
+    public DICOM getParent() {
+        return parent;
+    }
+
+    public void setParent(DICOM parent) {
+        this.parent = parent;
+    }
+
+    public String getReferenceUID() {
+        return referenceUID;
+    }
+
+    public void setReferenceUID(String referenceUID) {
+        this.referenceUID = referenceUID;
     }
 
 }
