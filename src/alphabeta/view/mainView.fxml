@@ -1,12 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.canvas.*?>
-<?import javafx.scene.chart.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.input.*?>
-<?import javafx.scene.layout.*?>
 <?import javafx.scene.Group?>
 <?import javafx.scene.canvas.Canvas?>
 <?import javafx.scene.chart.CategoryAxis?>
@@ -23,19 +16,21 @@
 <?import javafx.scene.control.SplitPane?>
 <?import javafx.scene.control.Tab?>
 <?import javafx.scene.control.TabPane?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToolBar?>
 <?import javafx.scene.control.TreeView?>
 <?import javafx.scene.input.KeyCodeCombination?>
+<?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.Pane?>
 <?import javafx.scene.layout.RowConstraints?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<VBox maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="813.0" prefWidth="1280.0" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="alphabeta.view.mainViewController">
+<VBox prefHeight="826.0" prefWidth="1236.0" xmlns="http://javafx.com/javafx/8.0.161" xmlns:fx="http://javafx.com/fxml/1" fx:controller="alphabeta.view.mainViewController">
   <children>
     <MenuBar VBox.vgrow="NEVER">
       <menus>
@@ -65,7 +60,7 @@
             <Button mnemonicParsing="false" onAction="#shutdownApp" text="Beenden" />
         </items>
       </ToolBar>
-      <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="SOMETIMES">
+      <TabPane tabClosingPolicy="UNAVAILABLE" VBox.vgrow="ALWAYS">
          <tabs>
             <Tab text="Übersicht">
                <content>
@@ -128,34 +123,57 @@
             </Tab>
             <Tab text="Image">
               <content>
-                  <HBox>
+                  <GridPane>
+                    <columnConstraints>
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="10.0" />
+                      <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="80.0" prefWidth="100.0" />
+                        <ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="10.0" />
+                    </columnConstraints>
+                    <rowConstraints>
+                      <RowConstraints minHeight="10.0" prefHeight="413.0" vgrow="ALWAYS" />
+                      <RowConstraints minHeight="10.0" percentHeight="15.0" prefHeight="107.0" vgrow="ALWAYS" />
+                    </rowConstraints>
                      <children>
+                        <TreeView prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" />
                         <SplitPane dividerPositions="0.333" orientation="VERTICAL">
                            <items>
                               <TreeView fx:id="planTreeView" />
                               <TreeView fx:id="detailsTreeView" />
                            </items>
                         </SplitPane>
-                        <HBox prefHeight="700.0" prefWidth="855.0">
+                        <HBox alignment="TOP_CENTER" GridPane.columnIndex="1">
                            <children>
-                              <StackPane fx:id="stackedPane" HBox.hgrow="SOMETIMES">
+                              <StackPane fx:id="stackedPane">
                                  <children>
-                                    <Canvas fx:id="dicomView" height="700.0" width="855.0" />
-                                    <Pane>
+                                    <Group fx:id="structureGroup">
                                        <children>
-                                          <Label fx:id="zLabel" layoutX="14.0" layoutY="673.0" text="Z: [cm]" visible="false" />
-                                          <Label fx:id="doseMax" layoutX="700.0" text="Dosismaximum: " visible="false" />
+                                          <Canvas fx:id="dicomView" height="1.0" width="1.0" />
+                                          <Canvas fx:id="structurCanvas" height="1.0" width="1.0" />
                                        </children>
-                                    </Pane>
-                                    <Canvas fx:id="structurCanvas" height="700.0" width="855.0" />
-                                    <Group fx:id="structureGroup" autoSizeChildren="false" />
+                                    </Group>
+                                    <AnchorPane fx:id="zLabelPane" maxHeight="-Infinity" maxWidth="-Infinity" StackPane.alignment="BOTTOM_LEFT">
+                                       <children>
+                                          <Label fx:id="zLabel" text="Z: [cm]" />
+                                       </children>
+                                    </AnchorPane>
+                                    <AnchorPane maxHeight="-Infinity" maxWidth="-Infinity" StackPane.alignment="TOP_RIGHT">
+                                       <children>
+                                          <Label fx:id="doseMax" text="Dosismaximum: " visible="false" />
+                                       </children>
+                                    </AnchorPane>
                                  </children>
                               </StackPane>
-                              <ScrollBar fx:id="imageScroll" blockIncrement="1.0" max="3.0" orientation="VERTICAL" prefHeight="700.0" visibleAmount="1.0" />
+                              <ScrollBar fx:id="imageScroll" blockIncrement="1.0" disable="true" max="3.0" orientation="VERTICAL" prefHeight="700.0" visible="false" visibleAmount="1.0" />
                            </children>
                         </HBox>
+                        <TableView prefHeight="200.0" prefWidth="200.0" GridPane.columnSpan="3" GridPane.rowIndex="1">
+                          <columns>
+                            <TableColumn prefWidth="75.0" text="C1" />
+                            <TableColumn prefWidth="75.0" text="C2" />
+                          </columns>
+                        </TableView>
                      </children>
-                  </HBox>
+                  </GridPane>
               </content>
             </Tab>
          </tabs>

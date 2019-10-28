@@ -39,6 +39,7 @@ public class LoadThread extends Task<Patient> {
     private int ctCols;
 
     public LoadThread(List<File> files) {
+        
         this.files = files;
     }
 
@@ -112,7 +113,7 @@ public class LoadThread extends Task<Patient> {
         }
 
         plan.setPlanDose(rpDICOM.getAttributes().getSequence(Tag.DoseReferenceSequence).get(0).getDouble(Tag.TargetPrescriptionDose, 0.0));
-        plan.setFraction(rpDICOM.getAttributes().getSequence(Tag.FractionGroupSequence).get(0).getDouble(Tag.NumberOfFractionsPlanned, 0.0));
+        plan.setFraction(rpDICOM.getAttributes().getSequence(Tag.FractionGroupSequence).get(0).getInt(Tag.NumberOfFractionsPlanned, 0));
         Sequence beamSequence = rpDICOM.getAttributes().getSequence(beamParam);
         for (Attributes beam : beamSequence) {
             Field field = new Field(beam.getString(Tag.BeamName));
@@ -120,6 +121,9 @@ public class LoadThread extends Task<Patient> {
             switch (beam.getString(Tag.TreatmentDeliveryType)) {
                 case "TREATMENT":
                     field.setFieldTyp(Field.TREATMENT);
+                    break;
+                    case "SETUP":
+                    field.setFieldTyp(Field.SETUP);
                     break;
             }
             Attributes fieldInfo = beam.getSequence(Tag.ControlPointSequence).get(0);
@@ -166,7 +170,11 @@ public class LoadThread extends Task<Patient> {
             String s = String.format("Lade Bild %d von %d", i, size);
             updateMessage(s);
             DICOM dcmTemp = new DICOM(selectedFile);
-            patient.setPatientName(dcmTemp.getFullPatientName());
+            patient.setPatientLastName(dcmTemp.getFullPatientName()[0]);
+            if(dcmTemp.getFullPatientName().length > 2) {
+                
+            }
+            patient.setPatientFirstName(dcmTemp.getFullPatientName()[dcmTemp.getFullPatientName().length-1]);
             switch (dcmTemp.getModalitiy()) {
                 case CT:
                     this.ctCols = dcmTemp.getAttributes().getInt(Tag.Columns, -1);
@@ -211,6 +219,8 @@ public class LoadThread extends Task<Patient> {
     }
 
     private void mergePlans() {
-        
+        /***
+         * @TODO - Implements merge Plan, Dose and CT
+         */
     }
 }

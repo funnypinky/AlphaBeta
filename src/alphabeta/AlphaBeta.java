@@ -41,6 +41,7 @@ public class AlphaBeta extends Application {
         this.scene.getStylesheets().addAll(this.getClass().getResource("view/ModernTheme.css").toExternalForm());
         stage.setScene(scene);
         stage.setTitle("Plan Auswerte Tool");
+        stage.setMaximized(true);
         stage.show();
     }
 

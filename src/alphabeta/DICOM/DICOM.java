@@ -286,8 +286,9 @@ public class DICOM {
         return this.attributes.getStrings(Tag.ImageType);
     }
 
-    public String getFullPatientName() {
-        return this.attributes.getString(Tag.PatientName);
+    public String[] getFullPatientName() {
+        String[] temp = this.attributes.getString(Tag.PatientName).split("^");
+        return temp;
     }
 
     public Attributes getAttributes() {

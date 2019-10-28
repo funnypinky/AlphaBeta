@@ -23,6 +23,8 @@ import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.concurrent.WorkerStateEvent;
@@ -46,6 +48,7 @@ import javafx.scene.control.TreeItem;
 import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.StackPane;
 import javafx.stage.FileChooser;
@@ -85,7 +88,7 @@ public class mainViewController implements Initializable {
 
     private final ProgressForm pf = new ProgressForm();
 
-    private double scaleFactor = 1.5;
+    private double scaleFactor = 2.5;
 
     @FXML
     private TreeView detailsTreeView;
@@ -102,6 +105,9 @@ public class mainViewController implements Initializable {
     @FXML
     private TextField prescriptionDose;
 
+    @FXML
+    private AnchorPane zLabelPane;
+
     /**
      * @param mainApp
      * @TODO-20190306: Change to Topo from CT - disable -done
@@ -114,6 +120,29 @@ public class mainViewController implements Initializable {
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        this.dicomView.widthProperty().bind(this.stackedPane.heightProperty());
+        this.dicomView.heightProperty().bind(this.stackedPane.heightProperty());
+
+        this.structurCanvas.widthProperty().bind(this.stackedPane.heightProperty());
+        this.structurCanvas.heightProperty().bind(this.stackedPane.heightProperty());
+        
+        this.zLabelPane.heightProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneWidth, Number newSceneWidth) {
+                System.out.println("Height: " + newSceneWidth);
+            }
+        });
+        
+        this.zLabelPane.widthProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observableValue, Number oldSceneWidth, Number newSceneWidth) {
+                System.out.println("Width: " + newSceneWidth);
+            }
+        });
+        //this.zLabelPane.prefHeightProperty().bind(this.stackedPane.heightProperty());
+
+        this.doseMax.setLayoutX(50);
+
         imageScroll.setMin(0);
         imageScroll.setMax(3);
         imageScroll.setValue(0);
@@ -181,11 +210,13 @@ public class mainViewController implements Initializable {
 
     private void displayImages(StructureSet ss) {
         activeImages.clear();
-        for(CTImageStack ct: this.patient.getCtImage().values()){
-            if (ct.getReferenceFrame().equals(ss.getReferenceCtUID())){
+
+        for (CTImageStack ct : this.patient.getCtImage().values()) {
+            if (ct.getReferenceFrame().equals(ss.getReferenceCtUID())) {
                 activeImages.addAll(ct.getImages());
             }
         }
+
         structurCanvas.setVisible(true);
         zLabel.setVisible(true);
         doseMax.setVisible(true);
@@ -262,6 +293,7 @@ public class mainViewController implements Initializable {
 
     public void paintImage(Image image) {
         GraphicsContext gc = this.dicomView.getGraphicsContext2D();
+        scaleFactor = this.dicomView.getHeight() / image.getHeight();
         gc.drawImage(image, 0, 0, image.getWidth() * scaleFactor, image.getHeight() * scaleFactor);
 
     }
@@ -333,7 +365,7 @@ public class mainViewController implements Initializable {
                     Label label = new Label(item.toString());
                     // Here we bind the pref height of the label to the height of the checkbox. This way the label and the checkbox will have the same size. 
                     checkBox.prefHeightProperty().bind(label.prefHeightProperty());
-                    checkBox.setStyle("-fx-base:#"+((Structure) item).getColor().toString().substring(2));
+                    checkBox.setStyle("-fx-base:#" + ((Structure) item).getColor().toString().substring(2));
                     cellBox.getChildren().addAll(checkBox, label);
                     checkBox.selectedProperty().addListener((obs, oldVal, newVal) -> {
                         ((Structure) item).setVisible(checkBox.isSelected());
