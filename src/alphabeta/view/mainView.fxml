@@ -134,7 +134,7 @@
                       <RowConstraints minHeight="10.0" percentHeight="15.0" prefHeight="107.0" vgrow="ALWAYS" />
                     </rowConstraints>
                      <children>
-                        <TreeView prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" />
+                        <TreeView fx:id="dosePlanTreeView" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="2" />
                         <SplitPane dividerPositions="0.333" orientation="VERTICAL">
                            <items>
                               <TreeView fx:id="planTreeView" />
@@ -148,6 +148,7 @@
                                     <Group fx:id="structureGroup">
                                        <children>
                                           <Canvas fx:id="dicomView" height="1.0" width="1.0" />
+                                          <Canvas fx:id="doseView" height="1.0" width="1.0" />
                                           <Canvas fx:id="structurCanvas" height="1.0" width="1.0" />
                                        </children>
                                     </Group>

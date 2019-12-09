@@ -13,19 +13,16 @@ import javafx.scene.paint.Color;
  */
 public class IsodoseLevel {
      private int level; 
-     private String name; 
      private final double absoluteDose; 
      private double thickness; 
- 
- 
+     private boolean visible = true;
      private Color color; 
      
  
  
-     public IsodoseLevel(int level, Color color, String name, double planDose) { 
+     public IsodoseLevel(int level, Color color, double planDose) { 
          this.level = level; 
          this.color = color; 
-         this.name = name; 
          this.absoluteDose = ((this.level) * planDose) / 100.0; 
      } 
  
@@ -37,16 +34,6 @@ public class IsodoseLevel {
  
      public void setLevel(int level) { 
          this.level = level; 
-     } 
- 
- 
-     public String getName() { 
-         return this.name; 
-     } 
- 
- 
-     public void setName(String name) { 
-         this.name = name; 
      } 
  
  
@@ -76,10 +63,7 @@ public class IsodoseLevel {
  
  
      public String getLabel() { 
-         String result = this.level + " % / " + String.format("%.6g", this.absoluteDose) + " cGy"; 
-         if (this.name != null && !this.name.equals("")) { 
-             result += " [" + this.name + "]"; 
-         } 
+         String result = this.level + " % / " + String.format("%.3g Gy", this.absoluteDose); 
          return result; 
      } 
  
@@ -88,7 +72,16 @@ public class IsodoseLevel {
      public String toString() { 
          return getLabel(); 
      } 
+
+    public boolean isVisible() {
+        return visible;
+    }
+
+    public void setVisible(boolean visible) {
+        this.visible = visible;
+    }
       
+     
  } 
 
 

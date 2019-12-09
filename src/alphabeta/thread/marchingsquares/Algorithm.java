@@ -180,8 +180,9 @@ public class Algorithm
       return result;
    }
 
-   GeneralPath[] buildContours(final double[][] data, final double[] levels)
+   public GeneralPath[] buildContours(final double[][] data, final double[] levels)
    throws InterruptedException, ExecutionException {
+       this.isovalues = levels;
       long t = -System.currentTimeMillis();
       // find min, max, and guard
       double min = data[0][0];
@@ -210,7 +211,7 @@ public class Algorithm
          result = doConcurrent(padded);
       }
       t += System.currentTimeMillis();
-      System.out.println("*** Built " + levels.length + " contours in " + t + " ms.");
+      //System.out.println("*** Built " + levels.length + " contours in " + t + " ms.");
       return result;
    }
 

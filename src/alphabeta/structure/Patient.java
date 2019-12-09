@@ -21,10 +21,11 @@ import java.util.List;
  */
 public class Patient {
 
-    private String patientLastName;
+    private String patientLastName ="";
+    
     private String patientMiddleName = null;
 
-    private String patientFirstName;
+    private String patientFirstName ="";
 
     private final HashMap<String, DICOMDose> dose = new HashMap<>();
 

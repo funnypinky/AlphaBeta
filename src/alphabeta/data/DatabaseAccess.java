@@ -4,7 +4,7 @@
  */
 package alphabeta.data;
 
-import alphabeta.AlphaBeta;
+import alphabeta.App;
 import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.DriverManager;
@@ -38,7 +38,7 @@ public class DatabaseAccess {
      * @throws SQLException
      */
     public void connect() throws SQLException {
-        connection = DriverManager.getConnection("jdbc:sqlite:" + AlphaBeta.DATABASEPATH + this.databasename);
+        connection = DriverManager.getConnection("jdbc:sqlite:" + App.DATABASEPATH + this.databasename);
         System.out.println("Connection to SQLite has been established.");
     }
 

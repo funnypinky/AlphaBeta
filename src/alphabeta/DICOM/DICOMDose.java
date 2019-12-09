@@ -14,6 +14,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.scene.paint.Color;
 
 /**
  *
@@ -45,6 +46,8 @@ public class DICOMDose extends DICOM {
     private double[] imagePositionPatient;
 
     private double[] imageOrientationPatient;
+    
+    private double[] pixelSpacing;
 
     private double scaleFactorX = 1.0;
 
@@ -61,6 +64,12 @@ public class DICOMDose extends DICOM {
     private int column;
     
     private String referenceUID;
+    
+    private String planUID;
+    
+    private String structureSetUID;
+    
+    private double precsionDose = 0.0;
 
     public DICOMDose(DICOM parent) {
         this.parent = parent;
@@ -299,7 +308,7 @@ public class DICOMDose extends DICOM {
     }
 
     public List<IsodoseLevel> getIsodose() {
-        return isodose;
+        return isodose.isEmpty() ? getDefaultIsoDoselevels() : isodose;
     }
 
     public double getCtimageRows() {
@@ -334,4 +343,62 @@ public class DICOMDose extends DICOM {
         this.referenceUID = referenceUID;
     }
 
+    public String getPlanUID() {
+        return planUID;
+    }
+
+    public void setPlanUID(String planUID) {
+        this.planUID = planUID;
+    }
+
+    public String getStructureSetUID() {
+        return structureSetUID;
+    }
+
+    public void setStructureSetUID(String structureSetUID) {
+        this.structureSetUID = structureSetUID;
+    }
+
+    public List<IsodoseLevel> getDefaultIsoDoselevels(){
+        ArrayList<IsodoseLevel> temp = new ArrayList<>();
+        temp.add(new IsodoseLevel(10, Color.WHITE, this.precsionDose));
+        temp.add(new IsodoseLevel(20, Color.BLUE, this.precsionDose));
+        temp.add(new IsodoseLevel(30, Color.CORAL, this.precsionDose));
+        temp.add(new IsodoseLevel(40, Color.CORAL, this.precsionDose));
+        temp.add(new IsodoseLevel(50, Color.CORAL, this.precsionDose));
+        temp.add(new IsodoseLevel(60, Color.CORAL, this.precsionDose));
+        temp.add(new IsodoseLevel(70, Color.CORAL, this.precsionDose));
+        temp.add(new IsodoseLevel(80, Color.CORAL, this.precsionDose));
+        temp.add(new IsodoseLevel(90, Color.CORAL, this.precsionDose));
+        temp.add(new IsodoseLevel(95, Color.YELLOW, this.precsionDose));
+        temp.add(new IsodoseLevel(100, Color.RED, this.precsionDose));
+        temp.add(new IsodoseLevel(110, Color.CORAL, this.precsionDose));
+        return temp;
+    }
+
+    public double getPrecsionDose() {
+        return precsionDose;
+    }
+
+    public void setPrecsionDose(double precsionDose) {
+        this.precsionDose = precsionDose;
+    }
+    
+    public double[] getAbsoluteDoseLevels() {
+        double[] levels = new double[getIsodose().size()];
+        for (int i = 0; i < levels.length; i++){
+            levels[i] = getIsodose().get(i).getAbsoluteDose();
+        }
+        return levels;
+    }
+
+    public double[] getPixelSpacing() {
+        return pixelSpacing;
+    }
+
+    public void setPixelSpacing(double[] pixelSpacing) {
+        this.pixelSpacing = pixelSpacing;
+    }
+    
+    
 }

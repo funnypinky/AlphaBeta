@@ -14,6 +14,7 @@ import java.io.IOException;
 import static java.lang.Double.NaN;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.StringTokenizer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.beans.property.SimpleStringProperty;
@@ -287,8 +288,7 @@ public class DICOM {
     }
 
     public String[] getFullPatientName() {
-        String[] temp = this.attributes.getString(Tag.PatientName).split("^");
-        return temp;
+        return this.attributes.getString(Tag.PatientName).split("\\u005E"); //Unicode for ^
     }
 
     public Attributes getAttributes() {
@@ -299,5 +299,4 @@ public class DICOM {
         return dicomFile;
     }
 
-    
 }
